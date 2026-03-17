@@ -15,10 +15,10 @@
   },
   "dependencies": {
     "@assistant/core": "workspace:*",
-    "@assistant/services": "workspace:*",
-    "@assistant/sdk": "workspace:*"
+    "@assistant/sdk": "workspace:*",
+    "@assistant/services": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "*"
+    "typescript": "^5.9.3"
   }
 }

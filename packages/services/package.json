@@ -26,6 +26,6 @@
     "@google/genai": "^1.45.0"
   },
   "devDependencies": {
-    "typescript": "*"
+    "typescript": "^5.9.3"
   }
 }
