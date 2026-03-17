@@ -22,7 +22,8 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@assistant/core": "workspace:*"
+    "@assistant/core": "workspace:*",
+    "@google/genai": "^1.45.0"
   },
   "devDependencies": {
     "typescript": "*"

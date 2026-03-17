@@ -39,7 +39,8 @@ export async function executeCommand(commandScript: string, input: any): Promise
       stdio: ['pipe', 'pipe', 'pipe', 'ipc']
     });
 
-    const timeoutMs = 5000;
+    // Give AI requests 30s to respond before killing the VM.
+    const timeoutMs = 30000;
     
     // Set a timeout to kill the process if it takes too long
     const timeoutId = setTimeout(() => {

@@ -4,6 +4,10 @@
   "private": true,
   "description": "pnpm monorepo workspace",
   "scripts": {
+    "start": "concurrently -c \"blue,magenta,cyan\" -n \"api,wa,dash\" \"pnpm run start:api\" \"pnpm run start:wa\" \"pnpm run start:dash\"",
+    "start:api": "pnpm --filter @assistant/api-server run start:dev",
+    "start:wa": "pnpm --filter @assistant/whatsapp-service run start:dev",
+    "start:dash": "pnpm --filter @assistant/dashboard run dev",
     "build": "pnpm --filter './packages/**' run build && pnpm --filter './apps/**' run build",
     "dev": "pnpm -r --parallel run dev",
     "lint": "pnpm -r run lint",
@@ -17,12 +21,14 @@
     "@types/node": "^25.5.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "nodemon": "^3.1.14",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "engines": {

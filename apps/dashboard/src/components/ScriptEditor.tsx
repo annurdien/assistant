@@ -7,12 +7,44 @@ type ScriptEditorProps = {
   disabled?: boolean;
 };
 
-const DEFAULT_TEMPLATE = `export default async function (ctx) {
+const DEFAULT_TEMPLATE = `/**
+ * @param {import("@assistant/sandbox").Context} ctx
+ */
+export default async function (ctx) {
   const { input, ai, expense, db, reply } = ctx;
   // Your execution logic here...
   
   return "Success!";
 }`;
+
+// Define the shape of the sandbox context to power Monaco's intellisense
+const SandboxDeclarations = `
+declare module "@assistant/sandbox" {
+  export interface Context {
+    /** The raw string input provided by the user after the command. */
+    input: string;
+    
+    /** The AI Service for prompting the LLM. */
+    ai: {
+      ask(prompt: string): Promise<string>;
+    };
+    
+    /** The Expense Service for managing user budget entries. */
+    expense: {
+      add(amount: number, description: string): Promise<string>;
+      list(): Promise<string>;
+    };
+    
+    /** The Prisma Database instance for direct data operations. */
+    db: any;
+    
+    /** Send a text reply back to the user on WhatsApp. */
+    reply(text: string): void;
+  }
+}
+
+declare const ctx: import("@assistant/sandbox").Context;
+`;
 
 export default function ScriptEditor({ value, onChange, disabled = false }: ScriptEditorProps) {
   const displayValue = value || DEFAULT_TEMPLATE;
@@ -39,8 +71,20 @@ export default function ScriptEditor({ value, onChange, disabled = false }: Scri
     >
       <Editor
         height="100%"
-        language="typescript"
+        language="javascript"
         theme="vs-dark"
+        onMount={(_, monaco) => {
+          // Add the contextual sandbox typing definitions into the editor instance
+          monaco.languages.typescript.javascriptDefaults.addExtraLib(
+            SandboxDeclarations,
+            "ts:filename/sandbox.d.ts"
+          );
+          // Don't complain about top-level return in our string-scripts
+          monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+            noSemanticValidation: false,
+            noSyntaxValidation: false,
+          });
+        }}
         value={displayValue}
         onChange={(val) => {
           if (val !== undefined) {

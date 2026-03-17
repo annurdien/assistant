@@ -61,8 +61,8 @@ function extractMessageText(msg: WAMessage): string | null {
  * Handles incoming WhatsApp messages.
  */
 async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg: WAMessage) {
-  // Ignore empty messages, system messages, or messages from ourselves
-  if (!msg.message || msg.key.fromMe) return;
+  // Ignore empty messages or system messages
+  if (!msg.message) return;
 
   const senderJid = msg.key.remoteJid;
   if (!senderJid) return;
@@ -76,15 +76,30 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
 
   logger.info(`Received command recursively from ${senderJid}: ${text}`);
 
+  // React to let the user know we're processing
+  try {
+    await sock.sendMessage(senderJid, { react: { text: '⏳', key: msg.key } });
+  } catch (err) {
+    logger.warn(`Failed to send processing reaction: ${err}`);
+  }
+
   // Send the command text precisely to the orchestrator API
   const responseText = await sendToApi(text);
 
   // Dispatch the API's execution result back to the WhatsApp user
   await sendReply(sock, senderJid, responseText, msg);
+
+  // Update reaction to denote completion
+  try {
+    await sock.sendMessage(senderJid, { react: { text: '✅', key: msg.key } });
+  } catch (err) {
+    logger.warn(`Failed to send completion reaction: ${err}`);
+  }
 }
 
 /**
  * Sends a text reply back to a specific WhatsApp JID.
+ * Handles chunking if the response exceeds WhatsApp's soft limits.
  */
 async function sendReply(
   sock: ReturnType<typeof makeWASocket>,
@@ -94,8 +109,50 @@ async function sendReply(
 ) {
   try {
     const options = quotedMessage ? { quoted: quotedMessage } : {};
-    await sock.sendMessage(jid, { text }, options);
-    logger.info(`Replied to ${jid} successfully.`);
+    
+    // WhatsApp's actual character limit for messages is around 65536,
+    // but a practical safe payload limit is typically ~4096 characters per chunk
+    const CHUNK_SIZE = 4000;
+    
+    if (text.length <= CHUNK_SIZE) {
+      await sock.sendMessage(jid, { text }, options);
+      logger.info(`Replied to ${jid} successfully.`);
+      return;
+    }
+
+    // Split long messages into chunks safely
+    let remaining = text;
+    let chunkCount = 1;
+    
+    while (remaining.length > 0) {
+      // Find a safe breaking point (newline or space) near the CHUNK_SIZE limit
+      let breakPoint = remaining.length;
+      
+      if (remaining.length > CHUNK_SIZE) {
+        breakPoint = remaining.lastIndexOf('\n', CHUNK_SIZE);
+        if (breakPoint === -1) {
+          breakPoint = remaining.lastIndexOf(' ', CHUNK_SIZE);
+        }
+        if (breakPoint === -1) {
+           breakPoint = CHUNK_SIZE; // Hard cut if no natural break
+        }
+      }
+      
+      const chunk = remaining.substring(0, breakPoint).trim();
+      remaining = remaining.substring(breakPoint).trim();
+      
+      // Send the isolated chunk
+      const suffix = remaining.length > 0 ? '\n\n*(continued...)*' : '';
+      await sock.sendMessage(jid, { text: `${chunk}${suffix}` }, chunkCount === 1 ? options : {});
+      logger.info(`Sent chunk ${chunkCount} to ${jid}`);
+      
+      // Delay slightly between chunks to prevent rate limiting
+      if (remaining.length > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      chunkCount++;
+    }
   } catch (error: any) {
     logger.error(`Failed to send reply to ${jid}: ${error.message}`);
   }

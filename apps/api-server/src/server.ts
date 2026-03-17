@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import { parseCommand, executeCommand } from '@assistant/core';
 import { getCommandByName, CommandNotFoundError, CommandDisabledError } from './commandRegistry.js';
 import { commandRoutes } from './routes/commands.js';
+import cors from '@fastify/cors';
 import { ConsoleLogger } from '@assistant/services';
 
 const logger = new ConsoleLogger('api-server');
@@ -9,6 +10,10 @@ const logger = new ConsoleLogger('api-server');
 export function buildServer() {
   const server = Fastify({
     logger: false // Use custom logger where needed, or true for Fastify's built-in Pino
+  });
+
+  server.register(cors, {
+    origin: '*', // Allow all origins for local development
   });
 
   // Register the Command CRUD API routes

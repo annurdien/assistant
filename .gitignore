@@ -33,3 +33,7 @@ coverage/
 # Turbo / cache
 .turbo/
 .cache/
+
+# WhatsApp Baileys Auth Session
+wa-auth-session/
+whatsapp-service/wa-auth-session/
