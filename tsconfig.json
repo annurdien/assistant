@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/services" },
+    { "path": "./packages/sdk" },
+    { "path": "./apps/whatsapp-service" },
+    { "path": "./apps/api-server" },
+    { "path": "./apps/worker" }
+  ]
+}
