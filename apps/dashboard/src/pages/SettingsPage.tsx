@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { Save, AlertCircle } from 'lucide-react';
+import { Save, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({
@@ -14,8 +21,6 @@ export default function SettingsPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -24,12 +29,10 @@ export default function SettingsPage() {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      setError(null);
       const data = await api.settings.getSettings();
-      // Merge with defaults
       setSettings(prev => ({ ...prev, ...data }));
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch settings.');
+      toast.error(err.message || 'Failed to fetch settings.');
     } finally {
       setIsLoading(false);
     }
@@ -38,15 +41,12 @@ export default function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setError(null);
-    setSuccessMsg(null);
     
     try {
       await api.settings.updateSettings(settings);
-      setSuccessMsg('Settings saved successfully!');
-      setTimeout(() => setSuccessMsg(null), 3000);
+      toast.success('System settings saved successfully.');
     } catch (err: any) {
-      setError(err.message || 'Failed to save settings.');
+      toast.error(err.message || 'Failed to save settings.');
     } finally {
       setIsSaving(false);
     }
@@ -58,171 +58,150 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="card">
-        <div className="card-body text-center py-5">
-          <div className="spinner-border text-primary" role="status"></div>
-        </div>
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+        <p className="text-muted-foreground text-sm font-medium">Loading settings...</p>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="page-header d-print-none mb-4">
-        <div className="row g-2 align-items-center">
-          <div className="col">
-            <h2 className="page-title">
-              System Settings
-            </h2>
-            <div className="text-secondary mt-1">
-              Configure AI providers, API keys, and global preferences.
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Configure AI parameters, global WhatsApp logic responses, and administrative access.
+        </p>
       </div>
 
-      <div className="row row-cards">
-        <div className="col-12">
-          <form className="card" onSubmit={handleSave}>
-            <div className="card-header">
-              <h3 className="card-title">AI Configuration</h3>
-            </div>
-            
-            <div className="card-body">
-              {error && (
-                <div className="alert alert-danger" role="alert">
-                  <div className="d-flex">
-                    <div><AlertCircle size={24} className="alert-icon" /></div>
-                    <div>{error}</div>
-                  </div>
-                </div>
-              )}
-              {successMsg && (
-                <div className="alert alert-success" role="alert">
-                  {successMsg}
-                </div>
-              )}
+      <div className="grid gap-6">
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="bg-muted/10 border-b border-border/50">
+            <CardTitle>AI Configuration</CardTitle>
+            <CardDescription>Configure core AI models and API authentication.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <form id="ai-form" onSubmit={handleSave} className="space-y-6">
 
-              <div className="mb-3">
-                <label className="form-label required">Gemini API Key</label>
-                <div>
-                  <input 
-                    type="password" 
-                    className="form-control" 
-                    placeholder="Enter your Google AI API Key" 
-                    value={settings.AI_API_KEY || ''}
-                    onChange={(e) => handleChange('AI_API_KEY', e.target.value)}
-                  />
-                  <small className="form-hint">
-                    This key will be used dynamically by the Worker Service when evaluating <code>ctx.ai.ask()</code> calls.
-                  </small>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="apiKey" className="font-semibold text-sm">Gemini API Key</Label>
+                <Input 
+                  id="apiKey"
+                  type="password" 
+                  placeholder="AIzaSy..." 
+                  className="font-mono bg-muted/20"
+                  value={settings.AI_API_KEY || ''}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('AI_API_KEY', e.target.value)}
+                />
+                <p className="text-[13px] text-muted-foreground">
+                  The primary authentication key for Vertex routing and Knowledge Base vector creation.
+                </p>
               </div>
 
-              <div className="mb-3">
-                <label className="form-label required">Gemini Model</label>
-                <div>
-                  <select 
-                    className="form-select" 
-                    value={settings.AI_MODEL || 'gemini-2.5-flash'}
-                    onChange={(e) => handleChange('AI_MODEL', e.target.value)}
-                  >
-                    <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
-                    <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
-                    <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
-                    <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview</option>
-                    <option value="gemini-3-pro-preview">gemini-3-pro-preview</option>
-                    <option value="gemini-3-flash-preview">gemini-3-flash-preview</option>
-                    <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="model" className="font-semibold text-sm">Language Model</Label>
+                <Select 
+                  value={settings.AI_MODEL || 'gemini-2.5-flash'}
+                  onValueChange={(val) => handleChange('AI_MODEL', val)}
+                >
+                  <SelectTrigger className="font-mono bg-muted/20">
+                    <SelectValue placeholder="Select LLM model..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</SelectItem>
+                    <SelectItem value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</SelectItem>
+                    <SelectItem value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</SelectItem>
+                    <SelectItem value="gemini-3.1-pro-preview">gemini-3.1-pro-preview</SelectItem>
+                    <SelectItem value="gemini-3-pro-preview">gemini-3-pro-preview</SelectItem>
+                    <SelectItem value="gemini-3-flash-preview">gemini-3-flash-preview</SelectItem>
+                    <SelectItem value="gemini-2.5-flash">gemini-2.5-flash</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[13px] text-muted-foreground">
+                  Select which model the assistant should use natively to generate answers.
+                </p>
               </div>
-            </div>
-            
-              <div className="card-footer text-end">
-                <button type="submit" className="btn btn-primary" disabled={isSaving}>
-                  {isSaving ? <span className="spinner-border spinner-border-sm me-2" role="status"></span> : <Save size={18} className="me-2" />}
-                  Save Configuration
-                </button>
-              </div>
-          </form>
-        </div>
-        
-        <div className="col-12 mt-4">
-          <form className="card" onSubmit={handleSave}>
-            <div className="card-header">
-              <h3 className="card-title">WhatsApp Bot Configuration</h3>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Allowed Numbers (Whitelist)</label>
-                  <input 
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="bg-muted/10 border-b border-border/50">
+            <CardTitle>WhatsApp Webhook Settings</CardTitle>
+            <CardDescription>Configure messaging parameters and security thresholds.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <form id="wa-form" onSubmit={handleSave} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="whitelist" className="font-semibold text-sm">Allowed Numbers (Whitelist)</Label>
+                  <Input 
+                    id="whitelist"
                     type="text" 
-                    className="form-control" 
-                    placeholder="e.g. 62812345678, 1234567890" 
+                    placeholder="6281234, 1555" 
+                    className="font-mono bg-muted/20"
                     value={settings.WA_ALLOWED_NUMBERS || ''}
-                    onChange={(e) => handleChange('WA_ALLOWED_NUMBERS', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('WA_ALLOWED_NUMBERS', e.target.value)}
                   />
-                  <small className="form-hint">
-                    Comma-separated blocklist. If left completely empty, all numbers are allowed to request commands.
-                  </small>
+                  <p className="text-[13px] text-muted-foreground">
+                    Comma separated numbers. Only these numbers can interact. Leave blank to allow anyone.
+                  </p>
                 </div>
                 
-                <div className="col-md-6 mb-3">
-                  <label className="form-label required">Command Prefix</label>
-                  <input 
+                <div className="space-y-2">
+                  <Label htmlFor="prefix" className="font-semibold text-sm">Command Prefix</Label>
+                  <Input 
+                    id="prefix"
                     type="text" 
-                    className="form-control" 
-                    placeholder="e.g. / or !" 
+                    placeholder="/" 
+                    className="font-mono bg-muted/20"
                     value={settings.WA_COMMAND_PREFIX || '/'}
-                    onChange={(e) => handleChange('WA_COMMAND_PREFIX', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('WA_COMMAND_PREFIX', e.target.value)}
                   />
-                  <small className="form-hint">
-                    The symbol required at the start of a message to trigger an execution script.
-                  </small>
+                  <p className="text-[13px] text-muted-foreground">
+                    Prefix character required to trigger interactive commands.
+                  </p>
                 </div>
               </div>
 
-              <div className="mb-3">
-                <div className="form-label">Behavior Flags</div>
-                <label className="form-check form-switch mb-2">
-                  <input 
-                    className="form-check-input" 
-                    type="checkbox" 
+              <div className="space-y-4 pt-2">
+                <div className="flex flex-row items-center justify-between rounded-lg border border-border p-4 shadow-sm bg-muted/30 hover:bg-muted/40 transition-colors">
+                  <div className="space-y-1">
+                    <Label className="font-semibold text-base">Reply to Unknown Commands</Label>
+                    <p className="text-[13px] text-muted-foreground">
+                      Sends a polite error message if a user triggers a command that doesn't exist.
+                    </p>
+                  </div>
+                  <Switch 
                     checked={settings.WA_REPLY_UNKNOWN === 'true'}
-                    onChange={(e) => handleChange('WA_REPLY_UNKNOWN', e.target.checked ? 'true' : 'false')}
+                    onCheckedChange={(c) => handleChange('WA_REPLY_UNKNOWN', c ? 'true' : 'false')}
                   />
-                  <span className="form-check-label">Reply to Unknown Commands</span>
-                </label>
-                <small className="form-hint mb-3 d-block">
-                  If enabled, the bot will politely inform the user if their command isn't recognized. If disabled, it fails silently.
-                </small>
+                </div>
 
-                <label className="form-check form-switch">
-                  <input 
-                    className="form-check-input" 
-                    type="checkbox" 
+                <div className="flex flex-row items-center justify-between rounded-lg border border-destructive/30 p-4 shadow-sm bg-destructive/5 hover:bg-destructive/10 transition-colors">
+                  <div className="space-y-1">
+                    <Label className="font-semibold text-base text-destructive">Maintenance Mode</Label>
+                    <p className="text-[13px] text-destructive/80 font-medium">
+                      Suspends processing of all incoming messages. Useful when performing system upgrades.
+                    </p>
+                  </div>
+                  <Switch 
                     checked={settings.WA_MAINTENANCE_MODE === 'true'}
-                    onChange={(e) => handleChange('WA_MAINTENANCE_MODE', e.target.checked ? 'true' : 'false')}
+                    onCheckedChange={(c) => handleChange('WA_MAINTENANCE_MODE', c ? 'true' : 'false')}
                   />
-                  <span className="form-check-label text-danger">Strict Maintenance Mode</span>
-                </label>
-                <small className="form-hint">
-                  <strong>Master Kill Switch.</strong> Immediately blocks all command executions safely until restored.
-                </small>
+                </div>
               </div>
-            </div>
-            <div className="card-footer text-end">
-              <button type="submit" className="btn btn-primary" disabled={isSaving}>
-                {isSaving ? <span className="spinner-border spinner-border-sm me-2" role="status"></span> : <Save size={18} className="me-2" />}
-                Save Configuration
-              </button>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
 
+        <div className="flex justify-end pt-2 pb-8">
+          <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full sm:w-auto px-8">
+            {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+            Save Settings
+          </Button>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

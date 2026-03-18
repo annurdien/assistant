@@ -1,6 +1,7 @@
 import Editor from '@monaco-editor/react';
 import { useEffect, useState, useRef } from 'react';
 import { Maximize2, Minimize2, AlignLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type ScriptEditorProps = {
   value: string;
@@ -68,47 +69,47 @@ export default function ScriptEditor({ value, onChange, disabled = false }: Scri
 
   return (
     <div 
-      className={isFullscreen ? "position-fixed top-0 start-0 w-100 h-100 z-3 bg-dark d-flex flex-column" : ""}
+      className={isFullscreen ? "fixed inset-0 z-[100] bg-background flex flex-col" : "relative flex flex-col border rounded-md overflow-hidden bg-background h-[500px] w-full"}
       style={{
-        zIndex: isFullscreen ? 1050 : 1, // High z-index to stay above Tabler navbar
-        ...(isFullscreen ? {} : { height: '500px', width: '100%', borderRadius: '0.25rem' }),
-        border: isFullscreen ? 'none' : '1px solid var(--tblr-border-color)',
         opacity: disabled ? 0.7 : 1,
         pointerEvents: disabled ? 'none' : 'auto',
-        overflow: 'hidden'
       }}
     >
       {/* Editor Toolbar */}
-      <div className="bg-dark text-white p-2 d-flex justify-content-between align-items-center border-bottom border-secondary">
-        <div className="text-secondary small ms-2 font-monospace">
+      <div className="bg-muted p-2 flex justify-between items-center border-b">
+        <div className="text-muted-foreground text-xs ml-2 font-mono">
           execute.js <span className="opacity-50 mx-2">|</span> JavaScript
         </div>
-        <div className="d-flex gap-2">
-          <button 
+        <div className="flex gap-2">
+          <Button 
             type="button" 
-            className="btn btn-sm btn-dark border-secondary"
+            variant="outline"
+            size="sm"
             onClick={handleFormat}
             title="Format Document (Shift+Alt+F)"
+            className="h-7 text-xs px-2"
           >
-            <AlignLeft size={14} className="me-1" /> Format
-          </button>
-          <button 
+            <AlignLeft size={14} className="mr-1" /> Format
+          </Button>
+          <Button 
             type="button" 
-            className="btn btn-sm btn-dark border-secondary"
+            variant="outline"
+            size="sm"
             onClick={toggleFullscreen}
             title="Toggle Fullscreen"
+            className="h-7 text-xs px-2"
           >
             {isFullscreen ? (
-              <><Minimize2 size={14} className="me-1" /> Exit Fullscreen</>
+              <><Minimize2 size={14} className="mr-1" /> Exit Fullscreen</>
             ) : (
-              <><Maximize2 size={14} className="me-1" /> Fullscreen</>
+              <><Maximize2 size={14} className="mr-1" /> Fullscreen</>
             )}
-          </button>
+          </Button>
         </div>
       </div>
       
       {/* Editor Main Canvas */}
-      <div className={isFullscreen ? "flex-grow-1" : ""} style={{ height: isFullscreen ? '0' : 'calc(100% - 40px)' }}>
+      <div className="flex-1 overflow-hidden relative">
       <Editor
         height="100%"
         language="javascript"

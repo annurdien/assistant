@@ -203,6 +203,20 @@ exports.Prisma.UserQuotaScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  filename: 'filename',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DocumentEmbeddingScalarFieldEnum = {
+  id: 'id',
+  documentId: 'documentId',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -239,7 +253,9 @@ exports.Prisma.ModelName = {
   CronJob: 'CronJob',
   Reminder: 'Reminder',
   Secret: 'Secret',
-  UserQuota: 'UserQuota'
+  UserQuota: 'UserQuota',
+  Document: 'Document',
+  DocumentEmbedding: 'DocumentEmbedding'
 };
 
 /**

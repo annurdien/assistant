@@ -1,9 +1,9 @@
-import { PrismaClient } from './generated/prisma/client.js';
+import { PrismaClient } from './generated/prisma/index.js';
 import pg from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 // Re-export types
-export * from './generated/prisma/client.js';
+export * from './generated/prisma/index.js';
 
 let prismaInstance: PrismaClient | null = null;
 

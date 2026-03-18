@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { Activity, AlertCircle } from 'lucide-react';
+import { Activity, RefreshCw, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadLogs();
@@ -14,99 +19,87 @@ export default function LogsPage() {
   const loadLogs = async () => {
     try {
       setIsLoading(true);
-      setError(null);
       const data = await api.logs.getLogs(100);
       setLogs(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch logs.');
+      toast.error(err.message || 'Failed to fetch logs.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <>
-      <div className="page-header d-print-none mb-4">
-        <div className="row g-2 align-items-center">
-          <div className="col">
-            <h2 className="page-title">
-              Execution Logs
-            </h2>
-            <div className="text-secondary mt-1">
-              View the history of executed commands and their outputs
-            </div>
-          </div>
-          <div className="col-auto ms-auto">
-            <button className="btn btn-primary" onClick={loadLogs} disabled={isLoading}>
-              Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {error ? (
-        <div className="alert alert-danger" role="alert">
-          <div className="d-flex">
-            <div><AlertCircle size={24} className="alert-icon" /></div>
-            <div>
-              <h4 className="alert-title">Failed to Load Logs</h4>
-              <div className="text-secondary">{error}</div>
-            </div>
-          </div>
-        </div>
-      ) : isLoading ? (
-        <div className="card">
-          <div className="card-body text-center py-5">
-            <div className="spinner-border text-primary" role="status"></div>
-            <div className="mt-3 text-secondary">Loading logs...</div>
-          </div>
-        </div>
-      ) : logs.length === 0 ? (
-        <div className="empty">
-          <div className="empty-img">
-            <Activity size={64} className="text-muted" strokeWidth={1.5} />
-          </div>
-          <p className="empty-title">No Logs Yet</p>
-          <p className="empty-subtitle text-secondary">
-            Command execution logs will appear here once your scripts are triggered.
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight">Execution Logs</h2>
+          <p className="text-muted-foreground">
+            View the history of executed commands and their outputs.
           </p>
         </div>
+        <Button onClick={loadLogs} disabled={isLoading} variant="outline" size="sm">
+          {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+          Refresh
+        </Button>
+      </div>
+
+      {isLoading && logs.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
+            <p className="text-muted-foreground">Retrieving logs...</p>
+          </CardContent>
+        </Card>
+      ) : logs.length === 0 ? (
+        <Card className="border-dashed shadow-none">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="bg-muted p-4 rounded-full mb-4">
+              <Activity className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No Logs Found</h3>
+            <p className="text-muted-foreground max-w-sm">Command execution logs will appear here once your commands are triggered.</p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="card">
-          <div className="table-responsive">
-            <table className="table table-vcenter card-table table-striped">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Command</th>
-                  <th>Status</th>
-                  <th>Output</th>
-                </tr>
-              </thead>
-              <tbody>
+        <Card>
+          <ScrollArea className="h-[600px] w-full rounded-md border-0">
+            <Table>
+              <TableHeader className="sticky top-0 bg-secondary/80 backdrop-blur-sm shadow-sm z-10 border-b">
+                <TableRow>
+                  <TableHead className="w-[180px]">Timestamp</TableHead>
+                  <TableHead className="w-[150px]">Command</TableHead>
+                  <TableHead className="w-[100px]">Status</TableHead>
+                  <TableHead>Execution Output</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {logs.map(log => (
-                  <tr key={log.id}>
-                    <td className="text-secondary" style={{ whiteSpace: 'nowrap' }}>
+                  <TableRow key={log.id}>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                    <td><span className="badge bg-blue-lt">{log.commandName}</span></td>
-                    <td>
-                      {log.status === 'SUCCESS' ? (
-                        <span className="status status-green">Success</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono">{log.commandName}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {log.status?.toUpperCase() === 'SUCCESS' ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20 shadow-none">Success</Badge>
                       ) : (
-                        <span className="status status-red">Failed</span>
+                        <Badge variant="destructive" className="shadow-none">Failed</Badge>
                       )}
-                    </td>
-                    <td className="text-secondary" style={{ maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {log.output || '-'}
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="max-w-[400px]">
+                      <div className="truncate font-mono text-sm text-foreground/80" title={log.output || '-'}>
+                        {log.output || '-'}
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </Card>
       )}
-    </>
+    </div>
   );
 }

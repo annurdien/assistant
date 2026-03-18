@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api, type Command } from '../services/api';
 import CommandCard from '../components/CommandCard';
-import { TerminalSquare, AlertCircle } from 'lucide-react';
+import { TerminalSquare, AlertCircle, Loader2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 export default function CommandList() {
   const [commands, setCommands] = useState<Command[]>([]);
@@ -29,87 +33,85 @@ export default function CommandList() {
     try {
       await api.deleteCommand(id);
       setCommands(commands.filter(cmd => cmd.id !== id));
+      toast.success('Command deleted successfully');
     } catch (err: any) {
-      alert(`Error deleting command: ${err.message}`);
+      toast.error(`Error deleting command: ${err.message}`);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="page page-center">
-        <div className="container-tight py-4 text-center">
-          <div className="spinner-border text-primary" role="status"></div>
-          <div className="mt-3 text-secondary">Loading your commands...</div>
-        </div>
+      <div className="flex h-[50vh] flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">Loading commands...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="alert alert-danger" role="alert">
-        <div className="d-flex">
-          <div>
-            <AlertCircle size={24} className="alert-icon" />
-          </div>
-          <div>
-            <h4 className="alert-title">Failed to Load</h4>
-            <div className="text-secondary">{error}</div>
-            <div className="mt-3">
-              <button onClick={loadCommands} className="btn btn-danger">
-                Try Again
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Alert variant="destructive" className="max-w-xl mx-auto mt-10">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Connection Error</AlertTitle>
+        <AlertDescription className="mt-2 text-sm">
+          {error}
+        </AlertDescription>
+        <Button variant="outline" className="mt-4" onClick={loadCommands}>Try Connection Again</Button>
+      </Alert>
     );
   }
 
   if (commands.length === 0) {
     return (
-      <div className="empty">
-        <div className="empty-img">
-          <TerminalSquare size={64} className="text-muted" strokeWidth={1.5} />
+      <div className="flex flex-col items-center justify-center h-[50vh] max-w-md mx-auto text-center space-y-4 border rounded-xl p-10 bg-background shadow-sm">
+        <div className="bg-muted p-4 rounded-full">
+          <TerminalSquare className="h-10 w-10 text-muted-foreground" />
         </div>
-        <p className="empty-title">No Commands Yet</p>
-        <p className="empty-subtitle text-secondary">
-          You haven't defined any execution scripts. Set up custom logic that runs dynamically when messaged.
+        <h3 className="text-2xl font-semibold tracking-tight">No Commands Found</h3>
+        <p className="text-muted-foreground mb-4">
+          You haven't created any commands yet. Set up custom logic scripts to govern your WhatsApp bot.
         </p>
+        <Button asChild>
+          <Link to="/">
+            <Plus className="mr-2 h-4 w-4" />
+            Create Command
+          </Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="page-header d-print-none mb-4">
-        <div className="row g-2 align-items-center">
-          <div className="col">
-            <h2 className="page-title">
-              Command Center
-            </h2>
-            <div className="text-secondary mt-1">
-              Manage, debug, and configure dynamic response scripts that execute securely in a sandboxed V8 environment.
-            </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight">Commands</h2>
+          <p className="text-muted-foreground">
+            Manage and configure the response scripts that power your bot.
+          </p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="bg-primary/10 text-primary px-3 py-1 rounded-md text-sm font-medium">
+            Total limits: {commands.length}
           </div>
-          <div className="col-auto ms-auto d-print-none">
-            <div className="text-secondary mt-1">
-              Active Scripts ({commands.length})
-            </div>
-          </div>
+          <Button asChild>
+            <Link to="/">
+              <Plus className="mr-2 h-4 w-4" />
+              New Command
+            </Link>
+          </Button>
         </div>
       </div>
       
-      <div className="row row-cards">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {commands.map((cmd) => (
-          <div className="col-md-6 col-lg-4" key={cmd.id}>
-            <CommandCard 
-              command={cmd} 
-              onDelete={() => handleDelete(cmd.id)} 
-            />
-          </div>
+          <CommandCard 
+            key={cmd.id}
+            command={cmd} 
+            onDelete={() => handleDelete(cmd.id)} 
+          />
         ))}
       </div>
-    </>
+    </div>
   );
 }

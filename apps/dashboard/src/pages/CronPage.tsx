@@ -1,6 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Square, Trash2, Plus, Edit, Clock } from 'lucide-react';
+import { Play, Square, Trash2, Plus, Edit, Clock, Loader2 } from 'lucide-react';
 import { api, type CronJob, type Command } from '../services/api';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 export default function CronPage() {
   const [jobs, setJobs] = useState<CronJob[]>([]);
@@ -8,7 +36,6 @@ export default function CronPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<CronJob | null>(null);
-  const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
     commandId: '',
@@ -27,7 +54,7 @@ export default function CronPage() {
       setJobs(jobsData);
       setCommands(cmdsData);
     } catch (err: any) {
-      setError(err.message || 'Failed to load data');
+      toast.error(err.message || 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +63,6 @@ export default function CronPage() {
   useEffect(() => { loadData(); }, []);
 
   const handleOpenModal = (job?: CronJob) => {
-    setError('');
     if (job) {
       setEditingJob(job);
       setFormData({
@@ -57,231 +83,222 @@ export default function CronPage() {
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingJob(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (editingJob) {
         await api.cron.updateJob(editingJob.id, formData);
+        toast.success("Job updated successfully.");
       } else {
         await api.cron.createJob(formData);
+        toast.success("Job created successfully.");
       }
-      handleCloseModal();
+      setIsModalOpen(false);
       loadData();
     } catch (err: any) {
-      setError(err.message || 'Failed to save cron job');
+      toast.error(err.message || 'Failed to save cron job');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this scheduled job?')) return;
     try {
       await api.cron.deleteJob(id);
+      toast.success("Job deleted successfully.");
       loadData();
     } catch (err: any) {
-      setError(err.message || 'Failed to delete job');
+      toast.error(err.message || 'Failed to delete job');
     }
   };
 
   const handleToggleState = async (job: CronJob) => {
     try {
       await api.cron.updateJob(job.id, { enabled: !job.enabled });
+      toast.success(`Job ${!job.enabled ? 'activated' : 'paused'} successfully.`);
       loadData();
     } catch (err: any) {
-      setError(err.message || 'Failed to toggle job state');
+      toast.error(err.message || 'Failed to toggle job state');
     }
   };
 
   return (
-    <>
-      <div className="page-header d-print-none mb-4">
-        <div className="row align-items-center">
-          <div className="col">
-            <h2 className="page-title d-flex align-items-center">
-              <Clock className="me-2 text-primary" />
-              Automated Tasks (CRON)
-            </h2>
-            <div className="text-muted mt-1">Schedule scripts to execute asynchronously and message users directly</div>
-          </div>
-          <div className="col-auto ms-auto d-print-none">
-            <div className="btn-list">
-              <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-                <Plus size={18} className="me-2" />
-                Create Job
-              </button>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            Scheduled Jobs
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">Manage automated background tasks and recurring messages.</p>
         </div>
+        <Button onClick={() => handleOpenModal()} className="flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Create Job</span>
+        </Button>
       </div>
 
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="d-flex justify-content-center py-5">
-          <div className="spinner-border text-primary" role="status"></div>
-        </div>
-      ) : (
-        <div className="card shadow-sm">
-          <div className="table-responsive">
-            <table className="table table-vcenter card-table table-striped">
-              <thead>
-                <tr>
-                  <th>Command Target</th>
-                  <th>Schedule (CRON)</th>
-                  <th>Target JID (Phone)</th>
-                  <th>Status</th>
-                  <th className="w-1"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-4 text-muted">
-                      No automated jobs scheduled yet.
-                    </td>
-                  </tr>
-                ) : (
-                  jobs.map(job => (
-                    <tr key={job.id}>
-                      <td>
-                        <div className="font-weight-medium">{job.commandName}</div>
-                        <div className="text-muted text-xs">{job.id.substring(0,8)}...</div>
-                      </td>
-                      <td>
-                        <code className="text-azure">{job.schedule}</code>
-                      </td>
-                      <td>
-                        <div className="text-muted">{job.targetJid}</div>
-                      </td>
-                      <td>
-                        {job.enabled ? 
-                          <span className="badge bg-success-lt">Active</span> : 
-                          <span className="badge bg-danger-lt">Paused</span>}
-                      </td>
-                      <td>
-                        <div className="btn-group">
-                          <button 
-                            className="btn btn-icon btn-outline-secondary btn-sm"
-                            onClick={() => handleToggleState(job)}
-                            title={job.enabled ? "Pause Timer" : "Resume Timer"}
-                          >
-                            {job.enabled ? <Square size={16} /> : <Play size={16} />}
-                          </button>
-                          <button 
-                            className="btn btn-icon btn-outline-primary btn-sm mx-1"
-                            onClick={() => handleOpenModal(job)}
-                            title="Edit Job"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button 
-                            className="btn btn-icon btn-outline-danger btn-sm"
-                            onClick={() => handleDelete(job.id)}
-                            title="Delete Job"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+      <Card className="overflow-hidden shadow-sm border-border/60">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-48">
+            <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
           </div>
-        </div>
-      )}
-
-      {/* Modal wrapper using pure Bootstrap syntax without full JS module loading restrictions */}
-      {isModalOpen && (
-        <>
-          <div className="modal modal-blur fade show" style={{ display: 'block' }} tabIndex={-1} role="dialog">
-            <div className="modal-dialog modal-dialog-centered" role="document">
-              <div className="modal-content">
-                <form onSubmit={handleSubmit}>
-                  <div className="modal-header">
-                    <h5 className="modal-title">{editingJob ? 'Edit CRON Job' : 'Create New CRON Job'}</h5>
-                    <button type="button" className="btn-close" onClick={handleCloseModal} aria-label="Close"></button>
-                  </div>
-                  <div className="modal-body">
-                    <div className="mb-3">
-                      <label className="form-label">Script Command</label>
-                      <select 
-                        className="form-select" 
-                        value={formData.commandId}
-                        onChange={e => setFormData({...formData, commandId: e.target.value})}
-                        required
-                      >
-                        <option value="" disabled>Select a command to execute...</option>
-                        {commands.map(c => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
-                      <small className="form-hint">The command executed by the VM when the timer fires.</small>
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">CRON Schedule</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        value={formData.schedule}
-                        onChange={e => setFormData({...formData, schedule: e.target.value})}
-                        placeholder="0 8 * * *"
-                        required
-                      />
-                      <small className="form-hint">Standard cron expression (e.g., <code>0 8 * * *</code> for daily at 8AM).</small>
-                    </div>
-
-                    <div className="mb-3">
-                      <label className="form-label">Target JID (Recipient Phone)</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        value={formData.targetJid}
-                        onChange={e => setFormData({...formData, targetJid: e.target.value})}
-                        placeholder="62812345678"
-                        required
-                      />
-                      <small className="form-hint">The WhatsApp number that will receive the execution output.</small>
-                    </div>
-
-                    <div className="mb-3">
-                       <label className="form-check form-switch cursor-pointer">
-                         <input 
-                           className="form-check-input" 
-                           type="checkbox" 
-                           checked={formData.enabled}
-                           onChange={e => setFormData({...formData, enabled: e.target.checked})}
-                         />
-                         <span className="form-check-label">Enable immediate polling for this job</span>
-                       </label>
-                    </div>
-
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-link link-secondary" onClick={handleCloseModal}>
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary ms-auto">
-                      Save Job Timer
-                    </button>
-                  </div>
-                </form>
-              </div>
+        ) : jobs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+            <div className="bg-muted p-5 rounded-full mb-6">
+              <Clock className="h-10 w-10 text-muted-foreground" />
             </div>
+            <h3 className="text-xl font-semibold mb-2">No Scheduled Jobs</h3>
+            <p className="text-muted-foreground text-sm max-w-sm">Create automated tasks to run commands on a recurring schedule.</p>
           </div>
-          <div className="modal-backdrop fade show"></div>
-        </>
-      )}
-    </>
+        ) : (
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="py-4 font-semibold text-foreground/80">Command</TableHead>
+                <TableHead className="font-semibold text-foreground/80">Schedule (CRON)</TableHead>
+                <TableHead className="font-semibold text-foreground/80">Destination Number</TableHead>
+                <TableHead className="font-semibold text-foreground/80">Status</TableHead>
+                <TableHead className="text-right font-semibold text-foreground/80 pr-6">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {jobs.map(job => (
+                <TableRow key={job.id} className="hover:bg-muted/15 transition-colors group">
+                  <TableCell className="py-4">
+                    <div className="font-medium">{job.commandName}</div>
+                    <div className="text-xs font-mono text-muted-foreground mt-0.5">{job.id.substring(0,8)}...</div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-mono bg-muted/40 px-2 py-0.5 text-xs text-primary">{job.schedule}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-mono text-sm text-muted-foreground tracking-wide">{job.targetJid}</div>
+                  </TableCell>
+                  <TableCell>
+                    {job.enabled ? 
+                      <Badge className="bg-emerald-500/10 text-emerald-600 border-transparent shadow-none">Active</Badge> : 
+                      <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 shadow-none border-transparent">Paused</Badge>}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end items-center gap-1 pr-4">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className={`h-8 w-8 transition-opacity ${job.enabled ? "text-amber-600 hover:text-amber-700 hover:bg-amber-100/50" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100/50"}`}
+                        onClick={() => handleToggleState(job)}
+                        title={job.enabled ? "Halt Interval" : "Unfreeze Interval"}
+                      >
+                        {job.enabled ? <Square size={16} /> : <Play size={16} />}
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hover:text-primary transition-opacity"
+                        onClick={() => handleOpenModal(job)}
+                        title="Edit Architecture"
+                      >
+                        <Edit size={16} />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive hover:bg-destructive/10 text-destructive/80 transition-opacity">
+                            <Trash2 size={16} />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Scheduled Job?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently remove the automated job. Scripts will no longer execute autonomously on the schedule.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            {/* @ts-ignore */}
+                            <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={() => handleDelete(job.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{editingJob ? 'Edit Scheduled Job' : 'Create Scheduled Job'}</DialogTitle>
+            <DialogDescription>
+              Run commands automatically on a recurring schedule.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label className="font-semibold text-sm">Target Command</Label>
+              <Select 
+                value={formData.commandId} 
+                onValueChange={(val) => setFormData({...formData, commandId: val})}
+                required
+              >
+                <SelectTrigger className="w-full font-mono text-sm">
+                  <SelectValue placeholder="Select a command to run..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {commands.map((c) => (
+                    <SelectItem key={c.id} value={c.id} className="font-mono text-sm">{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[13px] text-muted-foreground mt-1">Defines exactly which script gets triggered dynamically.</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-semibold text-sm">CRON Schedule</Label>
+              <Input 
+                required
+                value={formData.schedule}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, schedule: e.target.value})}
+                placeholder="0 8 * * *"
+                className="font-mono bg-muted/20"
+              />
+              <p className="text-[13px] text-muted-foreground mt-1">Accepts standard POSIX format (e.g. `0 * * * *` is hourly).</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-semibold text-sm">Target WhatsApp Number</Label>
+              <Input 
+                required
+                value={formData.targetJid}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, targetJid: e.target.value})}
+                placeholder="62812345678"
+                className="font-mono bg-muted/20"
+              />
+              <p className="text-[13px] text-muted-foreground mt-1">The destination phone number to send the output.</p>
+            </div>
+
+            <div className="flex flex-row items-center justify-between rounded-lg border border-border p-4 shadow-sm bg-muted/30">
+              <div className="space-y-1">
+                <Label className="text-sm font-semibold">Enable Job</Label>
+              </div>
+              <Switch
+                checked={formData.enabled}
+                onCheckedChange={(checked) => setFormData({...formData, enabled: checked})}
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Save Scheduled Job
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

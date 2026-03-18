@@ -1,5 +1,6 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Bot, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity, Database } from 'lucide-react';
+import { Routes, Route } from 'react-router-dom';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from './components/app-sidebar';
 import CommandList from './pages/CommandList';
 import CommandEditor from './pages/CommandEditor';
 import CronPage from './pages/CronPage';
@@ -9,141 +10,37 @@ import SettingsPage from './pages/SettingsPage';
 import { SecretsPage } from './pages/SecretsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { KnowledgeBasePage } from './pages/KnowledgeBasePage';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ThemeProvider } from './components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
 
-function Sidebar() {
-  const { logout } = useAuth();
-  const location = useLocation();
-
-  const isActive = (path: string) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
-    return false;
-  };
-
+function DashboardLayout() {
   return (
-    <aside className="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
-      <div className="container-fluid">
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        <h1 className="navbar-brand navbar-brand-autodark">
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <Bot size={24} className="text-primary me-2" />
-            Assistant Admin
-          </Link>
-        </h1>
-        <div className="collapse navbar-collapse" id="sidebar-menu">
-          <ul className="navbar-nav pt-lg-3">
-            <li className={`nav-item ${isActive('/') && location.pathname !== '/logs' && location.pathname !== '/settings' ? 'active' : ''}`}>
-              <Link className="nav-link" to="/">
-                <span className="nav-link-icon d-md-none d-lg-inline-block">
-                  <TerminalSquare size={18} />
-                </span>
-                <span className="nav-link-title">
-                  Commands
-                </span>
-              </Link>
-            </li>
-            <li className={`nav-item ${isActive('/logs') ? 'active' : ''}`}>
-              <Link className="nav-link" to="/logs">
-                <span className="nav-link-icon d-md-none d-lg-inline-block">
-                  <List size={18} />
-                </span>
-                <span className="nav-link-title">
-                  Logs
-                </span>
-              </Link>
-            </li>
-            <li className={`nav-item ${isActive('/cron') ? 'active' : ''}`}>
-              <Link className="nav-link" to="/cron">
-                <span className="nav-link-icon d-md-none d-lg-inline-block">
-                  <Clock size={18} />
-                </span>
-                <span className="nav-link-title">
-                  Automation (CRON)
-                </span>
-              </Link>
-            </li>
-            <li className={`nav-item ${isActive('/settings') ? 'active' : ''}`}>
-              <Link className="nav-link" to="/settings">
-                <span className="nav-link-icon d-md-none d-lg-inline-block">
-                  <Settings size={18} />
-                </span>
-                <span className="nav-link-title">
-                  Settings
-                </span>
-              </Link>
-            </li>
-            <li className={`nav-item ${isActive('/secrets') ? 'active' : ''}`}>
-              <Link className="nav-link" to="/secrets">
-                <span className="nav-link-icon d-md-none d-lg-inline-block">
-                  <KeyRound size={18} />
-                </span>
-                <span className="nav-link-title">
-                  Secure Vault
-                </span>
-              </Link>
-            </li>
-            <li className={`nav-item ${isActive('/analytics') ? 'active' : ''}`}>
-              <Link className="nav-link" to="/analytics">
-                <span className="nav-link-icon d-md-none d-lg-inline-block">
-                  <Activity size={18} />
-                </span>
-                <span className="nav-link-title">
-                  Analytics
-                </span>
-              </Link>
-            </li>
-            <li className={`nav-item ${isActive('/knowledge-base') ? 'active' : ''}`}>
-              <Link className="nav-link" to="/knowledge-base">
-                <span className="nav-link-icon d-md-none d-lg-inline-block">
-                  <Database size={18} />
-                </span>
-                <span className="nav-link-title">
-                  Knowledge Base
-                </span>
-              </Link>
-            </li>
-          </ul>
-
-          <div className="mt-auto p-3">
-            <button className="btn btn-danger w-100" onClick={logout}>
-              <LogOut size={18} className="me-2" />
-              Logout
-            </button>
+    <ThemeProvider defaultTheme="dark" storageKey="assistant-theme">
+      <SidebarProvider>
+        <AppSidebar />
+        <main className="flex-1 overflow-auto bg-background min-h-screen">
+          <div className="flex items-center px-4 py-2 min-h-12 md:hidden bg-card border-b border-border sticky top-0 z-10">
+            <SidebarTrigger />
+            <h1 className="ml-3 font-semibold text-sm tracking-tight text-foreground">Assistant Hub</h1>
           </div>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function MainLayout() {
-  return (
-    <ProtectedRoute>
-      <div className="page">
-        <Sidebar />
-        <div className="page-wrapper">
-          <main className="page-body">
-            <div className="container-xl">
-              <Routes>
-                <Route path="/" element={<CommandList />} />
-                <Route path="/new" element={<CommandEditor />} />
-                <Route path="/commands/:id" element={<CommandEditor />} />
-                <Route path="/cron" element={<CronPage />} />
-                <Route path="/logs" element={<LogsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/secrets" element={<SecretsPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
-              </Routes>
-            </div>
-          </main>
-        </div>
-      </div>
-    </ProtectedRoute>
+          <div className="mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-6 space-y-4">
+            <Routes>
+              <Route path="/" element={<CommandEditor />} />
+              <Route path="/commands" element={<CommandList />} />
+              <Route path="/cron" element={<CronPage />} />
+              <Route path="/logs" element={<LogsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/secrets" element={<SecretsPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
+            </Routes>
+          </div>
+        </main>
+        <Toaster position="top-center" richColors />
+      </SidebarProvider>
+    </ThemeProvider>
   );
 }
 
@@ -152,7 +49,11 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="*" element={<MainLayout />} />
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        } />
       </Routes>
     </AuthProvider>
   );

@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell
 } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function AnalyticsPage() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -40,7 +41,7 @@ export function AnalyticsPage() {
     const commandStats = Object.entries(cmdMap)
       .map(([name, count]) => ({ name: name || 'Unknown', count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10); // Top 10
+      .slice(0, 10);
 
     const statusStats = [
       { name: 'Success', value: successCount },
@@ -50,12 +51,13 @@ export function AnalyticsPage() {
     return { commandStats, statusStats };
   }, [logs]);
 
-  const COLORS = ['#10B981', '#EF4444']; // Green for success, Red for fail
+  const COLORS = ['#10B981', '#EF4444'];
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">Loading analytics...</p>
       </div>
     );
   }
@@ -64,71 +66,83 @@ export function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Analytics Engine</h1>
-          <p className="text-gray-500">Visualize command execution telemetries and operational quotas.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-muted-foreground mt-1">Visualize command usage and system performance.</p>
         </div>
-        <div className="flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium text-sm">
+        <div className="flex items-center space-x-2 bg-primary/10 text-primary px-4 py-2 rounded-lg font-medium text-sm">
           <Activity className="h-4 w-4" />
           <span>Total Executions: {logs.length}</span>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/50">
           {error}
         </div>
       )}
 
       {logs.length === 0 && !error ? (
-        <div className="rounded-lg border bg-white p-8 text-center shadow-sm">
-          <h3 className="text-lg font-medium text-gray-900">No Analytics Yet</h3>
-          <p className="mt-1 text-gray-500">Wait for users to execute commands to populate visual charts.</p>
-        </div>
+        <Card className="border-dashed flex items-center justify-center min-h-[40vh] shadow-none bg-muted/30">
+          <CardContent className="text-center pt-6">
+            <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">Execution data will appear here once your commands are triggered by users.</p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Top Commands Chart */}
-          <div className="rounded-lg border bg-white shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Top Commands Triggers</h3>
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={commandStats} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="name" />
-                  <YAxis allowDecimals={false} />
-                  <RechartsTooltip cursor={{fill: '#f4f4f5'}} />
-                  <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Executions" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          <Card className="shadow-sm border-border/60">
+            <CardHeader>
+              <CardTitle>Top Commands</CardTitle>
+              <CardDescription>The 10 most frequently executed commands.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80 w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={commandStats} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }} dy={10} />
+                    <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'currentColor', opacity: 0.6 }} dx={-10} />
+                    <RechartsTooltip cursor={{fill: 'currentColor', opacity: 0.05}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Function Calls" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Success Rate Chart */}
-          <div className="rounded-lg border bg-white shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Global Success Rate</h3>
-            <div className="h-80 w-full flex justify-center items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusStats}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={80}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                  >
-                    {statusStats.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                  <Legend verticalAlign="bottom" height={36}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          <Card className="shadow-sm border-border/60">
+            <CardHeader>
+              <CardTitle>Success Rate</CardTitle>
+              <CardDescription>Ratio of successful versus failed command executions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80 w-full flex justify-center items-center mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={80}
+                      outerRadius={120}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                      label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                    >
+                      {statusStats.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

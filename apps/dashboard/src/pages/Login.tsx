@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Bot, Lock, User } from 'lucide-react';
+import { Bot, Lock, User, Loader2, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ThemeProvider } from '../components/theme-provider';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -28,69 +33,88 @@ export default function Login() {
   };
 
   return (
-    <div className="page page-center">
-      <div className="container container-tight py-4">
-        <div className="text-center mb-4">
-          <a href="." className="navbar-brand navbar-brand-autodark" style={{ textDecoration: 'none' }}>
-            <Bot size={36} className="text-primary me-2" />
-            <span style={{ fontSize: '1.5rem', fontWeight: 600 }}>Assistant Admin</span>
-          </a>
+    <ThemeProvider defaultTheme="dark" storageKey="assistant-theme">
+      <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
+        {/* Background glow effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/[0.02] via-transparent to-transparent" />
         </div>
-        <div className="card card-md">
-          <div className="card-body">
-            <h2 className="h2 text-center mb-4">Login to your account</h2>
-            {error && (
-              <div className="alert alert-danger" role="alert">
-                {error}
+
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+          }}
+        />
+
+        <div className="relative w-full max-w-sm mx-4">
+          {/* Logo area */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="relative mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.15)]">
+                <Bot className="w-7 h-7 text-primary" />
               </div>
-            )}
-            <form onSubmit={handleSubmit} method="get" autoComplete="off" noValidate>
-              <div className="mb-3">
-                <label className="form-label">Username</label>
-                <div className="input-icon mb-3">
-                  <span className="input-icon-addon">
-                    <User size={18} />
-                  </span>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Enter username" 
-                    autoComplete="off" 
+              <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background flex items-center justify-center">
+                <Zap className="w-2 h-2 text-primary-foreground" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Assistant Hub</h1>
+            <p className="text-sm text-muted-foreground mt-1">Secure admin access portal</p>
+          </div>
+
+          {/* Login Card */}
+          <div className="bg-card border border-border rounded-xl p-6 shadow-2xl shadow-black/50 backdrop-blur-sm">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <Alert variant="destructive" className="py-2 text-xs">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <div className="space-y-1.5">
+                <Label htmlFor="username" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Username</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    placeholder="admin"
+                    className="pl-8 h-9 bg-background border-border/60 focus-visible:ring-primary/50 text-sm"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
                     required
                   />
                 </div>
               </div>
-              <div className="mb-2">
-                <label className="form-label">
-                  Password
-                </label>
-                <div className="input-icon mb-3">
-                  <span className="input-icon-addon">
-                    <Lock size={18} />
-                  </span>
-                  <input 
-                    type="password" 
-                    className="form-control" 
-                    placeholder="Your password" 
-                    autoComplete="off" 
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-8 h-9 bg-background border-border/60 focus-visible:ring-primary/50 text-sm"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                     required
                   />
                 </div>
               </div>
-              <div className="form-footer">
-                <button type="submit" className="btn btn-primary w-100" disabled={isSubmitting}>
-                  {isSubmitting ? <span className="spinner-border spinner-border-sm me-2" role="status"></span> : null}
-                  Sign in
-                </button>
-              </div>
+              <Button type="submit" className="w-full h-9 mt-2 text-sm font-medium" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                {isSubmitting ? 'Authenticating...' : 'Sign In'}
+              </Button>
             </form>
           </div>
+
+          <p className="text-center text-xs text-muted-foreground/50 mt-6">
+            Secured · Encrypted · Enterprise Grade
+          </p>
         </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 }
