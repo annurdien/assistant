@@ -1,8 +1,3 @@
-/**
- * @assistant/api-server
- * Entry point for the API server.
- */
-
 import { ConsoleLogger } from '@assistant/services';
 
 import { buildServer } from './server.js';

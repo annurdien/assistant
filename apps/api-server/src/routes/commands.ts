@@ -11,8 +11,6 @@ const prisma = new PrismaClient({ adapter });
 
 export async function commandRoutes(fastify: FastifyInstance) {
   
-  // GET /commands
-  // Fetch all commands, ordered by createdAt DESC
   fastify.get('/', async (_request, reply) => {
     const commands = await prisma.command.findMany({
       orderBy: {
@@ -23,8 +21,6 @@ export async function commandRoutes(fastify: FastifyInstance) {
     return reply.send(commands);
   });
 
-  // POST /commands
-  // Create a new command
   fastify.post('/', async (request, reply) => {
     try {
       const body = request.body as Partial<Command>;
@@ -48,14 +44,11 @@ export async function commandRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // PUT /commands/:id
-  // Update an existing command by ID
   fastify.put('/:id', async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
       const body = request.body as Partial<Command>;
 
-      // Filter out undefined values to satisfy strict TypeScript 'exactOptionalPropertyTypes'
       const dataToUpdate: Record<string, any> = {};
       if (body.name !== undefined) dataToUpdate.name = body.name;
       if (body.description !== undefined) dataToUpdate.description = body.description;
@@ -73,8 +66,6 @@ export async function commandRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // DELETE /commands/:id
-  // Delete an existing command by ID
   fastify.delete('/:id', async (request, reply) => {
     try {
       const { id } = request.params as { id: string };

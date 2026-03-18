@@ -9,15 +9,8 @@ import pino from 'pino';
 import { ConsoleLogger } from '@assistant/services';
 
 const logger = new ConsoleLogger('whatsapp-service');
-// Fallback in case the user meant the global execution endpoint
 const API_EXECUTE_URL = process.env.API_EXECUTE_URL || 'http://localhost:3000/execute';
 
-/**
- * Forwards a parsed command to the API server for execution.
- * 
- * @param text The raw message text starting with '/'
- * @returns The string response to reply with
- */
 async function sendToApi(text: string): Promise<string> {
   try {
     const response = await fetch(API_EXECUTE_URL, {
@@ -41,14 +34,10 @@ async function sendToApi(text: string): Promise<string> {
   }
 }
 
-/**
- * Extracts normalized text from a Baileys Web Message Info object.
- */
 function extractMessageText(msg: WAMessage): string | null {
   const message = msg.message;
   if (!message) return null;
 
-  // Extract text depending on the message type
   const text =
     message.conversation ||
     message.extendedTextMessage?.text ||
@@ -57,11 +46,7 @@ function extractMessageText(msg: WAMessage): string | null {
   return text ? text.trim() : null;
 }
 
-/**
- * Handles incoming WhatsApp messages.
- */
 async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg: WAMessage) {
-  // Ignore empty messages or system messages
   if (!msg.message) return;
 
   const senderJid = msg.key.remoteJid;
@@ -69,27 +54,22 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
 
   const text = extractMessageText(msg);
 
-  // We only care about explicit command triggers
   if (!text || !text.startsWith('/')) {
     return;
   }
 
   logger.info(`Received command recursively from ${senderJid}: ${text}`);
 
-  // React to let the user know we're processing
   try {
     await sock.sendMessage(senderJid, { react: { text: '⏳', key: msg.key } });
   } catch (err) {
     logger.warn(`Failed to send processing reaction: ${err}`);
   }
 
-  // Send the command text precisely to the orchestrator API
   const responseText = await sendToApi(text);
 
-  // Dispatch the API's execution result back to the WhatsApp user
   await sendReply(sock, senderJid, responseText, msg);
 
-  // Update reaction to denote completion
   try {
     await sock.sendMessage(senderJid, { react: { text: '✅', key: msg.key } });
   } catch (err) {
@@ -97,10 +77,6 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
   }
 }
 
-/**
- * Sends a text reply back to a specific WhatsApp JID.
- * Handles chunking if the response exceeds WhatsApp's soft limits.
- */
 async function sendReply(
   sock: ReturnType<typeof makeWASocket>,
   jid: string,
@@ -110,8 +86,6 @@ async function sendReply(
   try {
     const options = quotedMessage ? { quoted: quotedMessage } : {};
     
-    // WhatsApp's actual character limit for messages is around 65536,
-    // but a practical safe payload limit is typically ~4096 characters per chunk
     const CHUNK_SIZE = 4000;
     
     if (text.length <= CHUNK_SIZE) {
@@ -120,12 +94,10 @@ async function sendReply(
       return;
     }
 
-    // Split long messages into chunks safely
     let remaining = text;
     let chunkCount = 1;
     
     while (remaining.length > 0) {
-      // Find a safe breaking point (newline or space) near the CHUNK_SIZE limit
       let breakPoint = remaining.length;
       
       if (remaining.length > CHUNK_SIZE) {
@@ -134,19 +106,17 @@ async function sendReply(
           breakPoint = remaining.lastIndexOf(' ', CHUNK_SIZE);
         }
         if (breakPoint === -1) {
-           breakPoint = CHUNK_SIZE; // Hard cut if no natural break
+           breakPoint = CHUNK_SIZE;
         }
       }
       
       const chunk = remaining.substring(0, breakPoint).trim();
       remaining = remaining.substring(breakPoint).trim();
       
-      // Send the isolated chunk
       const suffix = remaining.length > 0 ? '\n\n*(continued...)*' : '';
       await sock.sendMessage(jid, { text: `${chunk}${suffix}` }, chunkCount === 1 ? options : {});
       logger.info(`Sent chunk ${chunkCount} to ${jid}`);
       
-      // Delay slightly between chunks to prevent rate limiting
       if (remaining.length > 0) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
@@ -158,30 +128,22 @@ async function sendReply(
   }
 }
 
-/**
- * Initializes the WhatsApp Baileys socket connection.
- */
 async function initWhatsApp() {
   logger.info('Initializing WhatsApp Service...');
 
-  // Store auth state (session) securely in a local folder
   const { state, saveCreds } = await useMultiFileAuthState('./wa-auth-session');
   
-  // Fetch the purest WA web version directly
   const { version, isLatest } = await fetchLatestBaileysVersion();
   logger.info(`Using WA v${version.join('.')}, isLatest: ${isLatest}`);
 
-  // Initialize Socket Connection using the Pino logger for internal Baileys logging
-  // makeWASocket acts as the default export wrapper in this version
   const sock = makeWASocket({
     version,
-    logger: pino({ level: 'silent' }), // Suppress verbose Baileys internal logs
-    printQRInTerminal: false, // We'll manage QR generation manually 
+    logger: pino({ level: 'silent' }),
+    printQRInTerminal: false,
     auth: state,
-    syncFullHistory: false, // Keep it lightweight
+    syncFullHistory: false,
   });
 
-  // Handle Baileys connection state modifications (Login, QR, Reconnects)
   sock.ev.on('connection.update', (update: any) => {
     const { connection, lastDisconnect, qr } = update;
 
@@ -196,7 +158,6 @@ async function initWhatsApp() {
       
       logger.error(`Connection closed due to ${(lastDisconnect?.error as any)?.message || 'Unknown'}, reconnecting ${shouldReconnect}`);
       
-      // Attempt reconnection unless explicitly logged out
       if (shouldReconnect) {
         initWhatsApp();
       } else {
@@ -207,12 +168,10 @@ async function initWhatsApp() {
     }
   });
 
-  // Automatically save session creds when they update
   sock.ev.on('creds.update', saveCreds);
 
-  // Delegate incoming message arrays 
   sock.ev.on('messages.upsert', async (m: any) => {
-    if (m.type !== 'notify') return; // We only care about new messages
+    if (m.type !== 'notify') return;
     
     for (const msg of m.messages) {
       await handleIncomingMessage(sock, msg);
@@ -220,7 +179,6 @@ async function initWhatsApp() {
   });
 }
 
-// Start the service
 initWhatsApp().catch((err) => {
   logger.error(`Fatal error in WhatsApp Service: ${err.message}`);
   process.exit(1);
