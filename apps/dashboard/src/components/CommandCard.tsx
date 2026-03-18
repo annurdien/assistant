@@ -39,11 +39,11 @@ export default function CommandCard({ command, onDelete }: CommandCardProps) {
       </div>
       
       <div className="card-footer d-flex justify-content-end gap-2">
-        <Link to={`/commands/${command.id}`} className="btn btn-outline-primary">
+        <Link to={`/commands/${command.id}`} className="btn btn-primary">
           <Edit2 size={16} className="me-2" />
           Edit
         </Link>
-        <button onClick={handleDelete} className="btn btn-outline-danger">
+        <button onClick={handleDelete} className="btn btn-danger">
           <Trash2 size={16} className="me-2" />
           Delete
         </button>

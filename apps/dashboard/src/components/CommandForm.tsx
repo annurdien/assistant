@@ -115,7 +115,7 @@ export default function CommandForm({ initialData = {}, onSubmit, isLoading }: C
               <button 
                 type="button" 
                 onClick={() => window.history.back()} 
-                className="btn btn-outline-secondary"
+                className="btn btn-secondary"
                 disabled={isLoading}
               >
                 <X size={18} className="me-2" />

@@ -56,7 +56,7 @@ export default function CommandList() {
             <h4 className="alert-title">Failed to Load</h4>
             <div className="text-secondary">{error}</div>
             <div className="mt-3">
-              <button onClick={loadCommands} className="btn btn-outline-danger">
+              <button onClick={loadCommands} className="btn btn-danger">
                 Try Again
               </button>
             </div>

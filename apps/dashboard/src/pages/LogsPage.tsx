@@ -37,7 +37,7 @@ export default function LogsPage() {
             </div>
           </div>
           <div className="col-auto ms-auto">
-            <button className="btn btn-outline-primary" onClick={loadLogs} disabled={isLoading}>
+            <button className="btn btn-primary" onClick={loadLogs} disabled={isLoading}>
               Refresh
             </button>
           </div>

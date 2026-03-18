@@ -71,7 +71,7 @@ export default function CommandEditor() {
     return (
       <div className="alert alert-danger" style={{ textAlign: 'center', marginTop: '2rem' }}>
         <p>{error}</p>
-        <button onClick={() => navigate('/')} className="btn btn-outline" style={{ marginTop: '1rem' }}>
+        <button onClick={() => navigate('/')} className="btn btn-secondary" style={{ marginTop: '1rem' }}>
           Back to List
         </button>
       </div>

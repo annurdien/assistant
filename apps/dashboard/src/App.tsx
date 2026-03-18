@@ -65,7 +65,7 @@ function Sidebar() {
           </ul>
 
           <div className="mt-auto p-3">
-            <button className="btn btn-outline-danger w-100" onClick={logout}>
+            <button className="btn btn-danger w-100" onClick={logout}>
               <LogOut size={18} className="me-2" />
               Logout
             </button>
