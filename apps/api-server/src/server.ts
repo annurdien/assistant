@@ -14,6 +14,7 @@ export function buildServer() {
 
   server.register(cors, {
     origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
 
   server.register(commandRoutes, { prefix: '/commands' });
