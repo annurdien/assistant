@@ -205,5 +205,38 @@ export const api = {
       });
       if (!response.ok) throw new Error('Failed to delete secret');
     }
+  },
+
+  kb: {
+    list: async (): Promise<any[]> => {
+      const response = await fetchWithAuth('/api/kb');
+      if (!response.ok) throw new Error('Failed to fetch KB docs');
+      return response.json();
+    },
+    upload: async (file: File): Promise<any> => {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // fetchWithAuth automatically resets Content-Type to JSON if body is a string,
+      // but Since we use FormData, we MUST NOT set Content-Type header ourselves!
+      const headers = new Headers();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/kb/upload`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Failed to upload document');
+      return response.json();
+    },
+    delete: async (id: string): Promise<void> => {
+      const response = await fetchWithAuth(`/api/kb/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete KB doc');
+    }
   }
 };

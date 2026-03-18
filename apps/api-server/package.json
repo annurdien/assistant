@@ -20,6 +20,7 @@
     "@assistant/services": "workspace:*",
     "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^10.0.0",
+    "@fastify/multipart": "^9.4.0",
     "bcryptjs": "^3.0.3",
     "fastify": "^5.8.2",
     "node-cron": "^4.2.1",

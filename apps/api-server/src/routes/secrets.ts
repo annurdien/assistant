@@ -10,7 +10,7 @@ export default async function secretsRoutes(server: FastifyInstance) {
     }
   });
 
-  server.get('/', async (request, reply) => {
+  server.get('/', async (_request, _reply) => {
     const secrets = await prisma.secret.findMany({
       orderBy: { createdAt: 'desc' }
     });

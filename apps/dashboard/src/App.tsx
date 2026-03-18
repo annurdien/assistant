@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Bot, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity } from 'lucide-react';
+import { Bot, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity, Database } from 'lucide-react';
 import CommandList from './pages/CommandList';
 import CommandEditor from './pages/CommandEditor';
 import CronPage from './pages/CronPage';
@@ -8,6 +8,7 @@ import LogsPage from './pages/LogsPage';
 import SettingsPage from './pages/SettingsPage';
 import { SecretsPage } from './pages/SecretsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { KnowledgeBasePage } from './pages/KnowledgeBasePage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -95,6 +96,16 @@ function Sidebar() {
                 </span>
               </Link>
             </li>
+            <li className={`nav-item ${isActive('/knowledge-base') ? 'active' : ''}`}>
+              <Link className="nav-link" to="/knowledge-base">
+                <span className="nav-link-icon d-md-none d-lg-inline-block">
+                  <Database size={18} />
+                </span>
+                <span className="nav-link-title">
+                  Knowledge Base
+                </span>
+              </Link>
+            </li>
           </ul>
 
           <div className="mt-auto p-3">
@@ -126,6 +137,7 @@ function MainLayout() {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/secrets" element={<SecretsPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
               </Routes>
             </div>
           </main>

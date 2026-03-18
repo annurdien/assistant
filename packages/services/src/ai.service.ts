@@ -71,4 +71,46 @@ export class AIService {
       throw new Error(`AI API Error: ${error.message}`);
     }
   }
+
+  /**
+   * Generates a 768-dimensional vector embedding natively using Gemini.
+   */
+  async embed(text: string): Promise<number[]> {
+    try {
+      const { client } = await this.getClientAndModel();
+      const response = await client.models.embedContent({
+        model: 'text-embedding-004',
+        contents: text
+      });
+      return response.embeddings?.[0]?.values || [];
+    } catch (error: any) {
+      throw new Error(`Embedding computation failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Searches the Knowledge Base via Postgres pgvector COSINE distance operators.
+   */
+  async search(query: string, limit: number = 3): Promise<{ documentId: string; content: string; similarity: number }[]> {
+    try {
+      const embedding = await this.embed(query);
+      if (!embedding.length) return [];
+
+      const vectorStr = `[${embedding.join(',')}]`;
+
+      const results = await prisma.$queryRawUnsafe<any[]>(`
+        SELECT
+          "documentId",
+          "content",
+          1 - (embedding <=> $1::vector) as similarity
+        FROM "DocumentEmbedding"
+        ORDER BY embedding <=> $1::vector
+        LIMIT $2;
+      `, vectorStr, limit);
+
+      return results;
+    } catch (error: any) {
+      throw new Error(`Vector Semantic Search failed: ${error.message}`);
+    }
+  }
 }

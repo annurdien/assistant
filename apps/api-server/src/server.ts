@@ -12,6 +12,8 @@ import logsRoutes from './routes/logs.js';
 import cronRoutes from './routes/cron.js';
 import reminderRoutes from './routes/reminders.js';
 import secretsRoutes from './routes/secrets.js';
+import kbRoutes from './routes/kb.js';
+import multipart from '@fastify/multipart';
 
 const logger = new ConsoleLogger('api-server');
 
@@ -29,12 +31,17 @@ export function buildServer() {
     secret: process.env.JWT_SECRET || 'supersecret_fallback_key_change_me'
   });
 
+  server.register(multipart, {
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB maximum payload
+  });
+
   server.register(authRoutes, { prefix: '/auth' });
   server.register(settingsRoutes, { prefix: '/settings' });
   server.register(logsRoutes, { prefix: '/logs' });
   server.register(cronRoutes, { prefix: '/cron' });
   server.register(reminderRoutes, { prefix: '/reminders' });
   server.register(secretsRoutes, { prefix: '/secrets' });
+  server.register(kbRoutes, { prefix: '/api/kb' });
 
   server.register(commandRoutes, { prefix: '/commands' });
 
