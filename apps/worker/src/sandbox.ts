@@ -1,7 +1,7 @@
 import * as vm from 'vm';
 import { createContext } from '@assistant/sdk';
 
-export async function executeInSandbox(code: string, input: string): Promise<any> {
+export async function executeInSandbox(code: string, input: string, replyCallback?: (msg: string) => Promise<void>): Promise<any> {
   const executableCode = code.replace(/export\s+default\s+/, 'module.exports = ');
 
   const sandboxExports: any = {};
@@ -23,7 +23,7 @@ export async function executeInSandbox(code: string, input: string): Promise<any
       throw new Error('Sandbox Error: The provided script did not export a default valid function.');
     }
 
-    const contextPayload = createContext(input);
+    const contextPayload = createContext(input, replyCallback);
 
     const result = await Promise.resolve(executableFunction(contextPayload));
 

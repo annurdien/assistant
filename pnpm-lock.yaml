@@ -56,27 +56,18 @@ importers:
       '@assistant/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@assistant/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@assistant/services':
         specifier: workspace:*
         version: link:../../packages/services
       '@fastify/cors':
         specifier: ^11.2.0
         version: 11.2.0
-      '@prisma/adapter-pg':
-        specifier: ^7.5.0
-        version: 7.5.0
-      '@prisma/client':
-        specifier: ^7.5.0
-        version: 7.5.0(prisma@7.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
       fastify:
         specifier: ^5.8.2
         version: 5.8.2
-      pg:
-        specifier: ^8.20.0
-        version: 8.20.0
-      prisma:
-        specifier: ^7.5.0
-        version: 7.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
     devDependencies:
       '@types/pg':
         specifier: ^8.18.0
@@ -148,6 +139,9 @@ importers:
       '@whiskeysockets/baileys':
         specifier: 7.0.0-rc.9
         version: 7.0.0-rc.9(sharp@0.34.5)
+      fastify:
+        specifier: ^5.8.2
+        version: 5.8.2
       pino:
         specifier: ^10.3.1
         version: 10.3.1
@@ -197,20 +191,45 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/database:
+    dependencies:
+      '@prisma/adapter-pg':
+        specifier: ^7.5.0
+        version: 7.5.0
+      '@prisma/client':
+        specifier: ^7.5.0
+        version: 7.5.0(prisma@7.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.18.0
+        version: 8.18.0
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.6.1
+      prisma:
+        specifier: ^7.5.0
+        version: 7.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.21.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/sdk:
     dependencies:
       '@assistant/core':
         specifier: workspace:*
         version: link:../core
+      '@assistant/database':
+        specifier: workspace:*
+        version: link:../database
       '@assistant/services':
         specifier: workspace:*
         version: link:../services
-      '@prisma/adapter-pg':
-        specifier: ^7.5.0
-        version: 7.5.0
-      pg:
-        specifier: ^8.20.0
-        version: 8.20.0
     devDependencies:
       '@types/pg':
         specifier: ^8.18.0
@@ -224,6 +243,9 @@ importers:
       '@assistant/core':
         specifier: workspace:*
         version: link:../core
+      '@assistant/database':
+        specifier: workspace:*
+        version: link:../database
       '@google/genai':
         specifier: ^1.45.0
         version: 1.45.0

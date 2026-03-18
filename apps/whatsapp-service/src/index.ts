@@ -6,19 +6,23 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys';
 import * as qrcode from 'qrcode-terminal';
 import pino from 'pino';
+import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import { ConsoleLogger } from '@assistant/services';
 
 const logger = new ConsoleLogger('whatsapp-service');
+const fastify = Fastify({ logger: false });
 const API_EXECUTE_URL = process.env.API_EXECUTE_URL || 'http://localhost:3000/execute';
 
-async function sendToApi(text: string): Promise<string> {
+let globalSock: ReturnType<typeof makeWASocket> | null = null;
+
+async function sendToApi(text: string, jid: string): Promise<string> {
   try {
     const response = await fetch(API_EXECUTE_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, jid }),
     });
 
     const data = await response.json() as any;
@@ -66,7 +70,7 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
     logger.warn(`Failed to send processing reaction: ${err}`);
   }
 
-  const responseText = await sendToApi(text);
+  const responseText = await sendToApi(text, senderJid);
 
   await sendReply(sock, senderJid, responseText, msg);
 
@@ -144,6 +148,8 @@ async function initWhatsApp() {
     syncFullHistory: false,
   });
 
+  globalSock = sock;
+
   sock.ev.on('connection.update', (update: any) => {
     const { connection, lastDisconnect, qr } = update;
 
@@ -178,6 +184,31 @@ async function initWhatsApp() {
     }
   });
 }
+
+// Setup Webhook Server for dynamic replies
+fastify.post('/reply', async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = request.body as { jid: string; text: string };
+  if (!body || !body.jid || !body.text) {
+    return reply.status(400).send({ error: 'Missing jid or text' });
+  }
+
+  if (!globalSock) {
+    return reply.status(500).send({ error: 'WhatsApp socket not initialized' });
+  }
+
+  try {
+    await sendReply(globalSock, body.jid, body.text);
+    return reply.send({ success: true });
+  } catch (error: any) {
+    return reply.status(500).send({ error: error.message });
+  }
+});
+
+fastify.listen({ port: 3001, host: '0.0.0.0' }).then(() => {
+  logger.info('Webhook server listening on port 3001');
+}).catch(err => {
+  logger.error(`Failed to start webhook server: ${err.message}`);
+});
 
 initWhatsApp().catch((err) => {
   logger.error(`Fatal error in WhatsApp Service: ${err.message}`);

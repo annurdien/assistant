@@ -1,13 +1,4 @@
-import { PrismaClient, type Command } from './generated/prisma/client.js';
-
-import pg from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/assistant?schema=public';
-const pool = new pg.Pool({ connectionString });
-// @ts-ignore
-const adapter = new PrismaPg(pool as any);
-const prisma = new PrismaClient({ adapter });
+import { prisma, type Command } from '@assistant/database';
 
 export class CommandNotFoundError extends Error {
   constructor(name: string) {

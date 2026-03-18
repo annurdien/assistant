@@ -27,9 +27,8 @@
   },
   "dependencies": {
     "@assistant/core": "workspace:*",
-    "@assistant/services": "workspace:*",
-    "@prisma/adapter-pg": "^7.5.0",
-    "pg": "^8.20.0"
+    "@assistant/database": "workspace:*",
+    "@assistant/services": "workspace:*"
   },
   "devDependencies": {
     "@types/pg": "^8.18.0",

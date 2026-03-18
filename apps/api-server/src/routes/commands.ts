@@ -1,13 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { PrismaClient, type Command } from '../generated/prisma/client.js';
-
-import pg from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/assistant?schema=public';
-const pool = new pg.Pool({ connectionString });
-const adapter = new PrismaPg(pool as any);
-const prisma = new PrismaClient({ adapter });
+import { prisma, type Command } from '@assistant/database';
 
 export async function commandRoutes(fastify: FastifyInstance) {
   
@@ -19,6 +11,21 @@ export async function commandRoutes(fastify: FastifyInstance) {
     });
 
     return reply.send(commands);
+  });
+
+  fastify.get('/:id', async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const command = await prisma.command.findUnique({
+        where: { id },
+      });
+      if (!command) {
+        return reply.status(404).send({ error: 'Command not found' });
+      }
+      return reply.send(command);
+    } catch (error: any) {
+      return reply.status(400).send({ error: error.message });
+    }
   });
 
   fastify.post('/', async (request, reply) => {

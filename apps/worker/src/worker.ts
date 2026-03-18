@@ -4,7 +4,11 @@ process.on('message', async (message: { script: string; input: string }) => {
   try {
     const { script, input } = message;
 
-    const result = await executeInSandbox(script, input);
+    const result = await executeInSandbox(script, input, async (msg) => {
+      if (process.send) {
+        process.send({ type: 'reply', message: msg });
+      }
+    });
 
     if (process.send) {
       process.send({ result });

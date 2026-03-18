@@ -16,11 +16,11 @@ export class ConsoleLogger implements Logger {
   constructor(private readonly context: string) {}
 
   debug(message: string, meta?: Record<string, unknown>): void {
-    console.warn(`[DEBUG] [${this.context}] ${message}`, meta ?? '');
+    console.debug(`[DEBUG] [${this.context}] ${message}`, meta ?? '');
   }
 
   info(message: string, meta?: Record<string, unknown>): void {
-    console.warn(`[INFO]  [${this.context}] ${message}`, meta ?? '');
+    console.info(`[INFO]  [${this.context}] ${message}`, meta ?? '');
   }
 
   warn(message: string, meta?: Record<string, unknown>): void {

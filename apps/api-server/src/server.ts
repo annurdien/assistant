@@ -20,7 +20,7 @@ export function buildServer() {
 
   server.post('/execute', async (request, reply) => {
     try {
-      const body = request.body as { text?: string };
+      const body = request.body as { text?: string; jid?: string };
 
       if (!body || typeof body.text !== 'string') {
         return reply.status(400).send({ error: "Missing or invalid 'text' field in request body." });
@@ -37,7 +37,19 @@ export function buildServer() {
 
       logger.info(`Orchestrating command execution: '${command.name}' with input: '${input}'`);
 
-      const executionResult = await executeCommand(command.script, input);
+      const executionResult = await executeCommand(command.script, input, async (msg: string) => {
+        if (body.jid) {
+          try {
+            await fetch('http://localhost:3001/reply', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ jid: body.jid, text: msg })
+            });
+          } catch (err: any) {
+            logger.warn(`Failed to dispatch dynamic reply via webhook: ${err.message}`);
+          }
+        }
+      });
 
       return reply.send({
         success: executionResult.success,

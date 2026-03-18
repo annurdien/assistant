@@ -1,9 +1,9 @@
-import { PrismaClient } from './src/generated/prisma/client.js';
+import { PrismaClient } from './generated/prisma/client.js';
 
 import pg from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/assistant?schema=public';
+const connectionString = process.env.DATABASE_URL || 'postgresql://admin:admin@localhost:5432/admin?schema=public';
 const pool = new pg.Pool({ connectionString });
 // @ts-ignore - ignore pool version collision
 const adapter = new PrismaPg(pool as any);

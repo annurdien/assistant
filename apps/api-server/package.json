@@ -8,7 +8,7 @@
     "build": "tsc --build",
     "dev": "tsc --build --watch",
     "start": "node dist/index.js",
-    "start:dev": "tsx --env-file=.env src/index.ts",
+    "start:dev": "tsx --env-file=../../.env src/index.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "type-check": "tsc --noEmit",
@@ -16,13 +16,10 @@
   },
   "dependencies": {
     "@assistant/core": "workspace:*",
+    "@assistant/database": "workspace:*",
     "@assistant/services": "workspace:*",
     "@fastify/cors": "^11.2.0",
-    "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
-    "fastify": "^5.8.2",
-    "pg": "^8.20.0",
-    "prisma": "^7.5.0"
+    "fastify": "^5.8.2"
   },
   "devDependencies": {
     "@types/pg": "^8.18.0",

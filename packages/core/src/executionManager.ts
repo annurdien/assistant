@@ -1,4 +1,4 @@
-import { fork } from 'child_process';
+import { ChildProcess, fork } from 'child_process';
 import path from 'path';
 
 export class ExecutionTimeoutError extends Error {
@@ -20,65 +20,118 @@ export interface CommandExecutionResult {
   success: boolean;
 }
 
-/**
- * Executes a command script in a separate Node.js process.
- * 
- * @param commandScript The JavaScript code of the command to execute
- * @param input The input arguments/data for the command
- * @returns The result of the command execution
- */
-export async function executeCommand(commandScript: string, input: any): Promise<CommandExecutionResult> {
-  return new Promise((resolve, reject) => {
-    // We execute a generic worker script that will eval the commandScript
-    // By convention, assume the worker is compiled to the same directory and extension
+interface WorkerNode {
+  process: ChildProcess;
+  busy: boolean;
+}
+
+class WorkerPool {
+  private workers: WorkerNode[] = [];
+  private taskQueue: Array<(worker: WorkerNode) => void> = [];
+
+  constructor(poolSize: number = 3) {
+    for (let i = 0; i < poolSize; i++) {
+      this.workers.push(this.createWorker());
+    }
+  }
+
+  private createWorker(): WorkerNode {
     const ext = path.extname(__filename);
     const workerPath = path.resolve(__dirname, `../../../apps/worker/dist/worker${ext}`);
     
-    // Spawn a child process
     const child = fork(workerPath, [], {
       stdio: ['pipe', 'pipe', 'pipe', 'ipc']
     });
 
-    // Give AI requests 30s to respond before killing the VM.
-    const timeoutMs = 30000;
+    const workerNode: WorkerNode = { process: child, busy: false };
+
+    child.on('exit', () => {
+      const index = this.workers.indexOf(workerNode);
+      if (index !== -1) {
+        this.workers[index] = this.createWorker();
+      }
+    });
+
+    return workerNode;
+  }
+
+  private async acquireWorker(): Promise<WorkerNode> {
+    const availableWorker = this.workers.find(w => !w.busy);
+    if (availableWorker) {
+      availableWorker.busy = true;
+      return availableWorker;
+    }
+
+    return new Promise(resolve => {
+      this.taskQueue.push((worker) => {
+        worker.busy = true;
+        resolve(worker);
+      });
+    });
+  }
+
+  private releaseWorker(worker: WorkerNode) {
+    worker.process.removeAllListeners('message');
+    worker.process.removeAllListeners('error');
     
-    // Set a timeout to kill the process if it takes too long
-    const timeoutId = setTimeout(() => {
-      child.kill();
-      reject(new ExecutionTimeoutError(timeoutMs));
-    }, timeoutMs);
+    const resolveNextTask = this.taskQueue.shift();
+    if (resolveNextTask) {
+      resolveNextTask(worker);
+    } else {
+      worker.busy = false;
+    }
+  }
 
-    // Listen for messages from the worker
-    child.on('message', (message: any) => {
-      clearTimeout(timeoutId);
-      child.kill();
+  public async execute(commandScript: string, input: any, onReply?: (msg: string) => void): Promise<CommandExecutionResult> {
+    const worker = await this.acquireWorker();
+
+    return new Promise((resolve, reject) => {
+      const child = worker.process;
+      const timeoutMs = 30000;
       
-      if (message.error) {
-        reject(new ExecutionFailedError(message.error));
-      } else {
-        resolve({
-          output: message.result,
-          success: true
-        });
-      }
-    });
+      const timeoutId = setTimeout(() => {
+        child.kill(); // The exit handler will recreate the worker
+        this.releaseWorker(worker);
+        reject(new ExecutionTimeoutError(timeoutMs));
+      }, timeoutMs);
 
-    // Handle unexpected worker exit
-    child.on('exit', (code) => {
-      clearTimeout(timeoutId);
-      if (code !== 0 && code !== null) {
-        reject(new ExecutionFailedError(`Worker exited with code ${code}`));
-      }
-    });
+      child.on('message', (message: any) => {
+        if (message.type === 'reply') {
+          if (onReply) onReply(message.message);
+          return;
+        }
 
-    // Handle child process errors
-    child.on('error', (err) => {
-      clearTimeout(timeoutId);
-      child.kill();
-      reject(new ExecutionFailedError(err.message));
-    });
+        clearTimeout(timeoutId);
+        this.releaseWorker(worker);
+        
+        if (message.error) {
+          reject(new ExecutionFailedError(message.error));
+        } else {
+          resolve({
+            output: message.result,
+            success: true
+          });
+        }
+      });
 
-    // Send the command script and input to the worker
-    child.send({ script: commandScript, input });
-  });
+      child.once('error', (err) => {
+        clearTimeout(timeoutId);
+        child.kill();
+        this.releaseWorker(worker);
+        reject(new ExecutionFailedError(err.message));
+      });
+
+      child.send({ script: commandScript, input });
+    });
+  }
+}
+
+// Singleton global pool initialized with 3 persistent workers
+const globalWorkerPool = new WorkerPool(3);
+
+/**
+ * Executes a command script safely returning the context via an IPC worker pool.
+ */
+export async function executeCommand(commandScript: string, input: any, onReply?: (msg: string) => void): Promise<CommandExecutionResult> {
+  return globalWorkerPool.execute(commandScript, input, onReply);
 }

@@ -19,11 +19,9 @@ export const api = {
   },
 
   async getCommand(id: string): Promise<Command> {
-    // We'll emulate getCommand by filtering the list since the backend might not have a GET /commands/:id route specified.
-    const commands = await this.getCommands();
-    const command = commands.find(c => c.id === id);
-    if (!command) throw new Error('Command not found');
-    return command;
+    const response = await fetch(`${API_BASE_URL}/commands/${id}`);
+    if (!response.ok) throw new Error('Command not found');
+    return response.json();
   },
 
   async createCommand(data: CommandInput): Promise<Command> {

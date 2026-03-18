@@ -1,5 +1,4 @@
-// @ts-ignore - Importing from apps/api-server directly violates TS rootDir, but requested by user as an option.
-import { PrismaClient } from '../../../apps/api-server/src/generated/prisma/client.js';
+import { PrismaClient, prisma as defaultPrisma } from '@assistant/database';
 
 /**
  * Service for managing expenses in the database.
@@ -8,8 +7,7 @@ export class ExpenseService {
   private prisma: PrismaClient;
 
   constructor(prismaClient?: PrismaClient) {
-    // @ts-expect-error - Prisma 7 requires adapter or accelerateUrl which is not configured yet.
-    this.prisma = prismaClient || new PrismaClient({});
+    this.prisma = prismaClient || defaultPrisma;
   }
 
   /**

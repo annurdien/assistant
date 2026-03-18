@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@assistant/core": "workspace:*",
+    "@assistant/database": "workspace:*",
     "@google/genai": "^1.45.0"
   },
   "devDependencies": {
