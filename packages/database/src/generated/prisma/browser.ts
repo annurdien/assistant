@@ -32,3 +32,13 @@ export type Expense = Prisma.ExpenseModel
  * 
  */
 export type Log = Prisma.LogModel
+/**
+ * Model Admin
+ * 
+ */
+export type Admin = Prisma.AdminModel
+/**
+ * Model Setting
+ * 
+ */
+export type Setting = Prisma.SettingModel

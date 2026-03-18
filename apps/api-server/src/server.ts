@@ -3,7 +3,11 @@ import { parseCommand, executeCommand } from '@assistant/core';
 import { getCommandByName, CommandNotFoundError, CommandDisabledError } from './commandRegistry.js';
 import { commandRoutes } from './routes/commands.js';
 import cors from '@fastify/cors';
+import fastifyJwt from '@fastify/jwt';
 import { ConsoleLogger } from '@assistant/services';
+import authRoutes from './routes/auth.js';
+import settingsRoutes from './routes/settings.js';
+import logsRoutes from './routes/logs.js';
 
 const logger = new ConsoleLogger('api-server');
 
@@ -16,6 +20,14 @@ export function buildServer() {
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
+
+  server.register(fastifyJwt, {
+    secret: process.env.JWT_SECRET || 'supersecret_fallback_key_change_me'
+  });
+
+  server.register(authRoutes, { prefix: '/auth' });
+  server.register(settingsRoutes, { prefix: '/settings' });
+  server.register(logsRoutes, { prefix: '/logs' });
 
   server.register(commandRoutes, { prefix: '/commands' });
 

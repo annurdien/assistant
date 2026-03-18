@@ -11,4 +11,6 @@
 export type * from './models/Command.js'
 export type * from './models/Expense.js'
 export type * from './models/Log.js'
+export type * from './models/Admin.js'
+export type * from './models/Setting.js'
 export type * from './commonInputTypes.js'

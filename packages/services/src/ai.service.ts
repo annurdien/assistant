@@ -1,18 +1,32 @@
 import { GoogleGenAI } from '@google/genai';
+import { prisma } from '@assistant/database';
 
 /**
  * Service for interacting with Gemini AI Models
  */
 export class AIService {
-  private client: GoogleGenAI;
-  private model: string;
+  private client: GoogleGenAI | null = null;
+  private currentApiKey: string | null = null;
 
-  constructor(
-    apiKey: string = process.env.GEMINI_API_KEY || '',
-    model: string = process.env.GEMINI_MODEL || ''
-  ) {
-    this.client = new GoogleGenAI({ apiKey });
-    this.model = model;
+  constructor() {}
+
+  private async getClientAndModel(): Promise<{ client: GoogleGenAI; model: string }> {
+    const dbKey = await prisma.setting.findUnique({ where: { key: 'AI_API_KEY' } });
+    const dbModel = await prisma.setting.findUnique({ where: { key: 'AI_MODEL' } });
+
+    const apiKey = dbKey?.value || process.env.GEMINI_API_KEY || '';
+    const model = dbModel?.value || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+
+    if (!apiKey) {
+      throw new Error('AI API Key is not configured in Settings or .env');
+    }
+
+    if (this.currentApiKey !== apiKey || !this.client) {
+      this.client = new GoogleGenAI({ apiKey });
+      this.currentApiKey = apiKey;
+    }
+
+    return { client: this.client, model };
   }
 
   /**
@@ -23,8 +37,10 @@ export class AIService {
    */
   async ask(prompt: string): Promise<string> {
     try {
-      const response = await this.client.models.generateContent({
-        model: this.model,
+      const { client, model } = await this.getClientAndModel();
+
+      const response = await client.models.generateContent({
+        model: model,
         contents: prompt,
         config: {
           systemInstruction: "You are a helpful assistant responding on WhatsApp. NEVER use standard Markdown like **, ##, or HTML. ONLY use WhatsApp text formatting: *bold*, _italic_, ~strikethrough~, and ```monospace```. Keep your layout clean and use normal dashes for bullet points.",

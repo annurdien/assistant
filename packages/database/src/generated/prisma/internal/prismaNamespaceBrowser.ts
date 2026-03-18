@@ -53,7 +53,9 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Command: 'Command',
   Expense: 'Expense',
-  Log: 'Log'
+  Log: 'Log',
+  Admin: 'Admin',
+  Setting: 'Setting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -103,6 +105,27 @@ export const LogScalarFieldEnum = {
 } as const
 
 export type LogScalarFieldEnum = (typeof LogScalarFieldEnum)[keyof typeof LogScalarFieldEnum]
+
+
+export const AdminScalarFieldEnum = {
+  id: 'id',
+  username: 'username',
+  passwordHash: 'passwordHash',
+  createdAt: 'createdAt'
+} as const
+
+export type AdminScalarFieldEnum = (typeof AdminScalarFieldEnum)[keyof typeof AdminScalarFieldEnum]
+
+
+export const SettingScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SettingScalarFieldEnum = (typeof SettingScalarFieldEnum)[keyof typeof SettingScalarFieldEnum]
 
 
 export const SortOrder = {

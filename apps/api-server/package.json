@@ -19,9 +19,12 @@
     "@assistant/database": "workspace:*",
     "@assistant/services": "workspace:*",
     "@fastify/cors": "^11.2.0",
+    "@fastify/jwt": "^10.0.0",
+    "bcryptjs": "^3.0.3",
     "fastify": "^5.8.2"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/pg": "^8.18.0",
     "typescript": "^5.9.3"
   }
