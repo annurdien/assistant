@@ -6,6 +6,10 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({
     AI_API_KEY: '',
     AI_MODEL: 'gemini-2.5-flash',
+    WA_ALLOWED_NUMBERS: '',
+    WA_COMMAND_PREFIX: '/',
+    WA_MAINTENANCE_MODE: 'false',
+    WA_REPLY_UNKNOWN: 'false'
   });
   
   const [isLoading, setIsLoading] = useState(true);
@@ -135,6 +139,80 @@ export default function SettingsPage() {
               </div>
             </div>
             
+              <div className="card-footer text-end">
+                <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                  {isSaving ? <span className="spinner-border spinner-border-sm me-2" role="status"></span> : <Save size={18} className="me-2" />}
+                  Save Configuration
+                </button>
+              </div>
+          </form>
+        </div>
+        
+        <div className="col-12 mt-4">
+          <form className="card" onSubmit={handleSave}>
+            <div className="card-header">
+              <h3 className="card-title">WhatsApp Bot Configuration</h3>
+            </div>
+            <div className="card-body">
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Allowed Numbers (Whitelist)</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    placeholder="e.g. 62812345678, 1234567890" 
+                    value={settings.WA_ALLOWED_NUMBERS || ''}
+                    onChange={(e) => handleChange('WA_ALLOWED_NUMBERS', e.target.value)}
+                  />
+                  <small className="form-hint">
+                    Comma-separated blocklist. If left completely empty, all numbers are allowed to request commands.
+                  </small>
+                </div>
+                
+                <div className="col-md-6 mb-3">
+                  <label className="form-label required">Command Prefix</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    placeholder="e.g. / or !" 
+                    value={settings.WA_COMMAND_PREFIX || '/'}
+                    onChange={(e) => handleChange('WA_COMMAND_PREFIX', e.target.value)}
+                  />
+                  <small className="form-hint">
+                    The symbol required at the start of a message to trigger an execution script.
+                  </small>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="form-label">Behavior Flags</div>
+                <label className="form-check form-switch mb-2">
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    checked={settings.WA_REPLY_UNKNOWN === 'true'}
+                    onChange={(e) => handleChange('WA_REPLY_UNKNOWN', e.target.checked ? 'true' : 'false')}
+                  />
+                  <span className="form-check-label">Reply to Unknown Commands</span>
+                </label>
+                <small className="form-hint mb-3 d-block">
+                  If enabled, the bot will politely inform the user if their command isn't recognized. If disabled, it fails silently.
+                </small>
+
+                <label className="form-check form-switch">
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    checked={settings.WA_MAINTENANCE_MODE === 'true'}
+                    onChange={(e) => handleChange('WA_MAINTENANCE_MODE', e.target.checked ? 'true' : 'false')}
+                  />
+                  <span className="form-check-label text-danger">Strict Maintenance Mode</span>
+                </label>
+                <small className="form-hint">
+                  <strong>Master Kill Switch.</strong> Immediately blocks all command executions safely until restored.
+                </small>
+              </div>
+            </div>
             <div className="card-footer text-end">
               <button type="submit" className="btn btn-primary" disabled={isSaving}>
                 {isSaving ? <span className="spinner-border spinner-border-sm me-2" role="status"></span> : <Save size={18} className="me-2" />}
@@ -143,6 +221,7 @@ export default function SettingsPage() {
             </div>
           </form>
         </div>
+
       </div>
     </>
   );

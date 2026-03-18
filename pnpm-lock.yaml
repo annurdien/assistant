@@ -148,6 +148,9 @@ importers:
       '@assistant/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@assistant/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@assistant/services':
         specifier: workspace:*
         version: link:../../packages/services

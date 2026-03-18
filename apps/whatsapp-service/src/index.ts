@@ -8,10 +8,38 @@ import * as qrcode from 'qrcode-terminal';
 import pino from 'pino';
 import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import { ConsoleLogger } from '@assistant/services';
+import { prisma } from '@assistant/database';
 
 const logger = new ConsoleLogger('whatsapp-service');
 const fastify = Fastify({ logger: false });
 const API_EXECUTE_URL = process.env.API_EXECUTE_URL || 'http://localhost:3000/execute';
+
+export let globalSettings = {
+  WA_ALLOWED_NUMBERS: '',
+  WA_COMMAND_PREFIX: '/',
+  WA_MAINTENANCE_MODE: 'false',
+  WA_REPLY_UNKNOWN: 'false'
+};
+
+async function fetchWhatsAppSettings() {
+  try {
+    const keys = ['WA_ALLOWED_NUMBERS', 'WA_COMMAND_PREFIX', 'WA_MAINTENANCE_MODE', 'WA_REPLY_UNKNOWN'];
+    const dbSettings = await prisma.setting.findMany({
+      where: { key: { in: keys } }
+    });
+    
+    // Merge into memory
+    dbSettings.forEach((row: any) => {
+      (globalSettings as any)[row.key] = row.value;
+    });
+  } catch (error: any) {
+    logger.error(`Failed to refresh WhatsApp settings: ${error.message}`);
+  }
+}
+
+// Initial fetch & set interval
+fetchWhatsAppSettings();
+setInterval(fetchWhatsAppSettings, 30000); // 30s sync
 
 let globalSock: ReturnType<typeof makeWASocket> | null = null;
 
@@ -53,12 +81,31 @@ function extractMessageText(msg: WAMessage): string | null {
 async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg: WAMessage) {
   if (!msg.message) return;
 
-  const senderJid = msg.key.remoteJid;
+  let senderJid = msg.key.remoteJid;
   if (!senderJid) return;
 
-  const text = extractMessageText(msg);
+  // Extract phone number from JID (e.g., 628123456@s.whatsapp.net -> 628123456)
+  const phoneNumber = senderJid.split('@')[0] as string;
 
-  if (!text || !text.startsWith('/')) {
+  const text = extractMessageText(msg);
+  if (!text) return;
+
+  const prefix = globalSettings.WA_COMMAND_PREFIX;
+  if (!text.startsWith(prefix) && prefix !== '') {
+    return;
+  }
+
+  // Check Whitelist config
+  const allowedNumbers = globalSettings.WA_ALLOWED_NUMBERS.split(',').map(s => s.trim()).filter(Boolean);
+  if (allowedNumbers.length > 0 && !allowedNumbers.includes(phoneNumber)) {
+    logger.warn(`Rejected unauthorized access from ${phoneNumber}`);
+    return;
+  }
+
+  // Check Maintenance Mode
+  if (globalSettings.WA_MAINTENANCE_MODE === 'true') {
+    logger.info(`Blocked command from ${phoneNumber} due to MAINTENANCE MODE.`);
+    await sendReply(sock, senderJid, '⚠️ The bot is currently undergoing maintenance. Please try again later.', msg);
     return;
   }
 
@@ -70,9 +117,15 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
     logger.warn(`Failed to send processing reaction: ${err}`);
   }
 
-  const responseText = await sendToApi(text, senderJid);
-
-  await sendReply(sock, senderJid, responseText, msg);
+  const responseText = await sendToApi(text as string, senderJid as string);
+  
+  if (responseText.includes('CommandNotFoundError') || responseText.includes('Invalid command format')) {
+    if (globalSettings.WA_REPLY_UNKNOWN === 'true') {
+      await sendReply(sock, senderJid, '❓ Unknown command or invalid format. Please check your spelling.', msg);
+    }
+  } else {
+    await sendReply(sock, senderJid, responseText, msg);
+  }
 
   try {
     await sock.sendMessage(senderJid, { react: { text: '✅', key: msg.key } });

@@ -7,30 +7,31 @@ export interface ParsedCommand {
 /**
  * Parses a raw chat command string into a structured object.
  * 
- * Supports commands starting with "/" and handles quoted arguments.
+ * Supports commands starting with a prefix (default "/") and handles quoted arguments.
  * Example:
  *   "/expense add 100 coffee"
  *   => { command: "expense", args: ["add", "100", "coffee"], raw: "/expense add 100 coffee" }
  * 
- *   '/expense add "monthly rent"' 
- *   => { command: "expense", args: ["add", "monthly rent"], raw: '/expense add "monthly rent"' }
+ *   '!expense add "monthly rent"' 
+ *   => { command: "expense", args: ["add", "monthly rent"], raw: '!expense add "monthly rent"' }
  */
-export function parseCommand(rawInput: string): ParsedCommand | null {
+export function parseCommand(rawInput: string, prefix: string = '/'): ParsedCommand | null {
   const trimmed = rawInput.trim();
   
-  // Handle empty input or input that doesn't start with "/"
-  if (!trimmed || !trimmed.startsWith('/')) {
+  // If prefix is string but empty, we don't require prefix. 
+  // Otherwise check if it starts with the prefix.
+  if (prefix !== '' && !trimmed.startsWith(prefix)) {
     return null;
   }
 
-  // Remove the prefixing "/"
-  const inputWithoutSlash = trimmed.slice(1);
+  // Remove the prefixing characters
+  const inputWithoutPrefix = trimmed.slice(prefix.length);
 
   // Regex to split by spaces, but keep text inside quotes together
   // Matches either text inside quotes OR non-space characters
   const argRegex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
   
-  const matches = [...inputWithoutSlash.matchAll(argRegex)];
+  const matches = [...inputWithoutPrefix.matchAll(argRegex)];
 
   if (matches.length === 0 || !matches[0]) {
     return null;
