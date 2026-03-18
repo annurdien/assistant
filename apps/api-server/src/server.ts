@@ -8,6 +8,8 @@ import { ConsoleLogger } from '@assistant/services';
 import authRoutes from './routes/auth.js';
 import settingsRoutes from './routes/settings.js';
 import logsRoutes from './routes/logs.js';
+import cronRoutes from './routes/cron.js';
+import reminderRoutes from './routes/reminders.js';
 
 const logger = new ConsoleLogger('api-server');
 
@@ -28,12 +30,14 @@ export function buildServer() {
   server.register(authRoutes, { prefix: '/auth' });
   server.register(settingsRoutes, { prefix: '/settings' });
   server.register(logsRoutes, { prefix: '/logs' });
+  server.register(cronRoutes, { prefix: '/cron' });
+  server.register(reminderRoutes, { prefix: '/reminders' });
 
   server.register(commandRoutes, { prefix: '/commands' });
 
   server.post('/execute', async (request, reply) => {
     try {
-      const body = request.body as { text?: string; jid?: string };
+      const body = request.body as { text?: string; jid?: string; media?: any };
 
       if (!body || typeof body.text !== 'string') {
         return reply.status(400).send({ error: "Missing or invalid 'text' field in request body." });
@@ -48,9 +52,15 @@ export function buildServer() {
 
       const input = parsed.args.join(' ');
 
+      const payload = {
+        input,
+        jid: body.jid,
+        media: body.media
+      };
+
       logger.info(`Orchestrating command execution: '${command.name}' with input: '${input}'`);
 
-      const executionResult = await executeCommand(command.script, input, async (msg: string) => {
+      const executionResult = await executeCommand(command.script, payload, async (msg: string) => {
         if (body.jid) {
           try {
             await fetch('http://localhost:3001/reply', {

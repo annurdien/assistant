@@ -9,6 +9,18 @@ export interface Command {
 
 export type CommandInput = Omit<Command, 'id' | 'createdAt'>;
 
+export interface CronJob {
+  id: string;
+  commandId: string;
+  commandName?: string;
+  schedule: string;
+  targetJid: string;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export type CronJobInput = Omit<CronJob, 'id' | 'createdAt' | 'commandName'>;
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
@@ -115,6 +127,36 @@ export const api = {
       const response = await fetchWithAuth(`/logs?limit=${limit}`);
       if (!response.ok) throw new Error('Failed to fetch logs');
       return response.json();
+    }
+  },
+
+  cron: {
+    async getJobs(): Promise<CronJob[]> {
+      const response = await fetchWithAuth('/cron');
+      if (!response.ok) throw new Error('Failed to fetch cron jobs');
+      return response.json();
+    },
+    async createJob(data: CronJobInput): Promise<CronJob> {
+      const response = await fetchWithAuth('/cron', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create cron job');
+      return response.json();
+    },
+    async updateJob(id: string, data: Partial<CronJobInput>): Promise<CronJob> {
+      const response = await fetchWithAuth(`/cron/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update cron job');
+      return response.json();
+    },
+    async deleteJob(id: string): Promise<void> {
+      const response = await fetchWithAuth(`/cron/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete cron job');
     }
   }
 };

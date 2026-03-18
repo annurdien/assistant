@@ -1,7 +1,8 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Bot, TerminalSquare, List, Settings, LogOut } from 'lucide-react';
+import { Bot, TerminalSquare, List, Settings, LogOut, Clock } from 'lucide-react';
 import CommandList from './pages/CommandList';
 import CommandEditor from './pages/CommandEditor';
+import CronPage from './pages/CronPage';
 import Login from './pages/Login';
 import LogsPage from './pages/LogsPage';
 import SettingsPage from './pages/SettingsPage';
@@ -52,6 +53,16 @@ function Sidebar() {
                 </span>
               </Link>
             </li>
+            <li className={`nav-item ${isActive('/cron') ? 'active' : ''}`}>
+              <Link className="nav-link" to="/cron">
+                <span className="nav-link-icon d-md-none d-lg-inline-block">
+                  <Clock size={18} />
+                </span>
+                <span className="nav-link-title">
+                  Automation (CRON)
+                </span>
+              </Link>
+            </li>
             <li className={`nav-item ${isActive('/settings') ? 'active' : ''}`}>
               <Link className="nav-link" to="/settings">
                 <span className="nav-link-icon d-md-none d-lg-inline-block">
@@ -88,6 +99,7 @@ function MainLayout() {
                 <Route path="/" element={<CommandList />} />
                 <Route path="/new" element={<CommandEditor />} />
                 <Route path="/commands/:id" element={<CommandEditor />} />
+                <Route path="/cron" element={<CronPage />} />
                 <Route path="/logs" element={<LogsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Routes>

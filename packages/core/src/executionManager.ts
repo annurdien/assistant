@@ -82,7 +82,7 @@ class WorkerPool {
     }
   }
 
-  public async execute(commandScript: string, input: any, onReply?: (msg: string) => void): Promise<CommandExecutionResult> {
+  public async execute(commandScript: string, payload: any, onReply?: (msg: string) => void): Promise<CommandExecutionResult> {
     const worker = await this.acquireWorker();
 
     return new Promise((resolve, reject) => {
@@ -121,7 +121,7 @@ class WorkerPool {
         reject(new ExecutionFailedError(err.message));
       });
 
-      child.send({ script: commandScript, input });
+      child.send({ script: commandScript, payload });
     });
   }
 }
@@ -132,6 +132,6 @@ const globalWorkerPool = new WorkerPool(3);
 /**
  * Executes a command script safely returning the context via an IPC worker pool.
  */
-export async function executeCommand(commandScript: string, input: any, onReply?: (msg: string) => void): Promise<CommandExecutionResult> {
-  return globalWorkerPool.execute(commandScript, input, onReply);
+export async function executeCommand(commandScript: string, payload: any, onReply?: (msg: string) => void): Promise<CommandExecutionResult> {
+  return globalWorkerPool.execute(commandScript, payload, onReply);
 }

@@ -1,10 +1,10 @@
 import { executeInSandbox } from './sandbox.js';
 
-process.on('message', async (message: { script: string; input: string }) => {
+process.on('message', async (message: { script: string; payload: any }) => {
   try {
-    const { script, input } = message;
+    const { script, payload } = message;
 
-    const result = await executeInSandbox(script, input, async (msg) => {
+    const result = await executeInSandbox(script, payload, async (msg) => {
       if (process.send) {
         process.send({ type: 'reply', message: msg });
       }

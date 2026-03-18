@@ -11,17 +11,29 @@ export type Context = {
   expense: ExpenseService;
   db: PrismaClient;
   reply: (msg: string) => Promise<void>;
+  session: {
+    get: (key: string) => Promise<any>;
+    set: (key: string, value: any) => Promise<void>;
+  };
+  media?: { mimetype: string; data: string }[] | undefined;
+  remind: (time: number | string | Date, message: string) => Promise<void>;
 };
+
+export interface ExecutionContextData {
+  input: string;
+  jid?: string | undefined;
+  media?: { mimetype: string; data: string }[] | undefined;
+}
 
 /**
  * Creates the execution context for sandboxed command scripts.
  * 
- * @param input The raw input string provided by the user
+ * @param payload The structured data securely passed into the worker VM
  * @returns Data securely packaged into an immutable Context object
  */
-export function createContext(input: string, replyCallback?: (msg: string) => Promise<void>): Context {
+export function createContext(payload: ExecutionContextData, replyCallback?: (msg: string) => Promise<void>): Context {
   // Normalize input
-  const normalizedInput = input.trim();
+  const normalizedInput = payload.input.trim();
 
   const db = dbInstance;
 
@@ -37,6 +49,53 @@ export function createContext(input: string, replyCallback?: (msg: string) => Pr
     }
   };
 
+  const session = {
+    get: async (key: string) => {
+      if (!payload.jid) return undefined;
+      const rec = await db.session.findUnique({ where: { jid: payload.jid } });
+      if (!rec) return undefined;
+      const data = rec.data as Record<string, any>;
+      return data[key];
+    },
+    set: async (key: string, value: any) => {
+      if (!payload.jid) return;
+      
+      const rec = await db.session.findUnique({ where: { jid: payload.jid } });
+      let currentData: Record<string, any> = rec ? (rec.data as Record<string, any>) : {};
+      
+      currentData[key] = value;
+      
+      await db.session.upsert({
+        where: { jid: payload.jid },
+        update: { data: currentData },
+        create: { jid: payload.jid, data: currentData }
+      });
+    }
+  };
+
+  const remind = async (time: number | string | Date, message: string) => {
+    if (!payload.jid) return;
+    try {
+      const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+      const bodyPayload: any = { targetJid: payload.jid, text: message };
+      
+      if (typeof time === 'number') {
+         bodyPayload.minutes = time;
+      } else {
+         bodyPayload.executeAt = time instanceof Date ? time.toISOString() : time;
+      }
+
+      const res = await fetch(`${baseUrl}/reminders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload)
+      });
+      if (!res.ok) console.error(`Sandbox Reminder failed: [${res.status}]`);
+    } catch (err: any) {
+      console.error(`Local Sandbox Reminder fetch crash: ${err.message}`);
+    }
+  };
+
   // Build the structured context payload
   const context: Context = {
     input: normalizedInput,
@@ -44,6 +103,9 @@ export function createContext(input: string, replyCallback?: (msg: string) => Pr
     expense,
     db,
     reply,
+    session,
+    media: payload.media,
+    remind
   };
 
   // Freeze the payload to prevent destructive mutations by the executed sandbox script

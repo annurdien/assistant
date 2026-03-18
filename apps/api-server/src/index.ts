@@ -1,6 +1,8 @@
 import { ConsoleLogger } from '@assistant/services';
 
 import { buildServer } from './server.js';
+import { initCronScheduler } from './cron/cron.service.js';
+import { initReminderScheduler } from './cron/reminder.service.js';
 
 const logger = new ConsoleLogger('api-server');
 
@@ -9,7 +11,11 @@ async function main(): Promise<void> {
   const server = buildServer();
   
   await server.listen({ port: 3000, host: '0.0.0.0' });
-  logger.info(`Server listening on \${(server.server.address() as any)?.port}`);
+  logger.info(`Server listening on ${(server.server.address() as any)?.port}`);
+
+  // Bootstrap asynchronous interval jobs
+  await initCronScheduler();
+  initReminderScheduler();
 }
 
 main().catch((err: unknown) => {

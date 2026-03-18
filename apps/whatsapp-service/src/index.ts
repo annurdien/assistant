@@ -2,6 +2,7 @@ import makeWASocket, {
   DisconnectReason,
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
+  downloadMediaMessage,
   type WAMessage
 } from '@whiskeysockets/baileys';
 import * as qrcode from 'qrcode-terminal';
@@ -43,14 +44,14 @@ setInterval(fetchWhatsAppSettings, 30000); // 30s sync
 
 let globalSock: ReturnType<typeof makeWASocket> | null = null;
 
-async function sendToApi(text: string, jid: string): Promise<string> {
+async function sendToApi(text: string, jid: string, media?: any): Promise<string> {
   try {
     const response = await fetch(API_EXECUTE_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text, jid }),
+      body: JSON.stringify({ text, jid, media }),
     });
 
     const data = await response.json() as any;
@@ -84,8 +85,10 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
   let senderJid = msg.key.remoteJid;
   if (!senderJid) return;
 
-  // Extract phone number from JID (e.g., 628123456@s.whatsapp.net -> 628123456)
-  const phoneNumber = senderJid.split('@')[0] as string;
+  // In WhatsApp groups, remoteJid is the group ID, while participant is the actual sender
+  const authorJid: string = msg.key.participant || senderJid;
+  // Multi-device IDs contain colons (e.g., 628123:15@s.whatsapp.net). We strip to base number.
+  const phoneNumber = (authorJid.split('@')[0] || '').split(':')[0] as string;
 
   const text = extractMessageText(msg);
   if (!text) return;
@@ -97,8 +100,12 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
 
   // Check Whitelist config
   const allowedNumbers = globalSettings.WA_ALLOWED_NUMBERS.split(',').map(s => s.trim()).filter(Boolean);
-  if (allowedNumbers.length > 0 && !allowedNumbers.includes(phoneNumber)) {
-    logger.warn(`Rejected unauthorized access from ${phoneNumber}`);
+  
+  const isWhitelisted = allowedNumbers.length === 0 || allowedNumbers.includes(phoneNumber);
+  
+  // Always permit the authenticated device owner if fromMe is true
+  if (!isWhitelisted && !msg.key.fromMe) {
+    logger.warn(`Rejected unauthorized access from ${phoneNumber} (Original JID: ${authorJid})`);
     return;
   }
 
@@ -117,7 +124,30 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
     logger.warn(`Failed to send processing reaction: ${err}`);
   }
 
-  const responseText = await sendToApi(text as string, senderJid as string);
+  let mediaPayload: any = undefined;
+  
+  if (msg.message?.imageMessage) {
+    try {
+      const buffer = await downloadMediaMessage(
+        msg,
+        'buffer',
+        { },
+        { 
+          logger: logger as any,
+          reuploadRequest: sock.updateMediaMessage
+        }
+      );
+      
+      const mimetype = msg.message.imageMessage.mimetype || 'image/jpeg';
+      const base64Data = (buffer as Buffer).toString('base64');
+      mediaPayload = [{ mimetype, data: base64Data }];
+      logger.info(`Successfully parsed attached image buffer (${mimetype})`);
+    } catch (err: any) {
+      logger.error(`Failed to securely download media buffer: ${err.message}`);
+    }
+  }
+
+  const responseText = await sendToApi(text as string, senderJid as string, mediaPayload);
   
   if (responseText.includes('CommandNotFoundError') || responseText.includes('Invalid command format')) {
     if (globalSettings.WA_REPLY_UNKNOWN === 'true') {

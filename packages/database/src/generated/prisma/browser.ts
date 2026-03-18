@@ -42,3 +42,18 @@ export type Admin = Prisma.AdminModel
  * 
  */
 export type Setting = Prisma.SettingModel
+/**
+ * Model Session
+ * 
+ */
+export type Session = Prisma.SessionModel
+/**
+ * Model CronJob
+ * 
+ */
+export type CronJob = Prisma.CronJobModel
+/**
+ * Model Reminder
+ * 
+ */
+export type Reminder = Prisma.ReminderModel
