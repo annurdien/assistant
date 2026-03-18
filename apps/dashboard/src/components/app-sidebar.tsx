@@ -1,4 +1,4 @@
-import { Bot, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity, Database, ScrollText, ChevronRight, Zap } from 'lucide-react';
+import { MessageSquare, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity, Database, ScrollText, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, Link } from 'react-router-dom';
 import {
@@ -22,7 +22,7 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { title: 'Script Editor', url: '/', icon: TerminalSquare, desc: 'Write & run code' },
+    { title: 'Command Editor', url: '/', icon: TerminalSquare, desc: 'Write & run code' },
     { title: 'Commands', url: '/commands', icon: List, desc: 'Manage commands' },
     { title: 'Automation', url: '/cron', icon: Clock, desc: 'CRON scheduling' },
   ];
@@ -31,7 +31,7 @@ export function AppSidebar() {
     { title: 'API Keys', url: '/secrets', icon: KeyRound, desc: 'Manage environment variables' },
     { title: 'Analytics', url: '/analytics', icon: Activity, desc: 'Usage insights' },
     { title: 'Knowledge Base', url: '/knowledge-base', icon: Database, desc: 'Reference documents' },
-    { title: 'Execution Logs', url: '/logs', icon: ScrollText, desc: 'Command history' },
+    { title: 'Command Logs', url: '/logs', icon: ScrollText, desc: 'Command history' },
     { title: 'Settings', url: '/settings', icon: Settings, desc: 'System config' },
   ];
 
@@ -40,15 +40,12 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-border/40 pb-3">
         <div className="flex items-center gap-2.5 px-3 py-2">
           <div className="relative flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Bot className="h-4 w-4 text-primary" />
-            </div>
-            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-sidebar flex items-center justify-center">
-              <Zap className="w-1.5 h-1.5 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <MessageSquare className="h-4 w-4 text-primary-foreground" fill="currentColor" />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-sm leading-tight text-foreground">Assistant Hub</span>
+            <span className="font-semibold text-sm leading-tight text-foreground">Assistant</span>
             <span className="text-[10px] text-muted-foreground leading-tight">Admin Dashboard</span>
           </div>
         </div>

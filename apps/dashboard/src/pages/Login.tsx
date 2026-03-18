@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Bot, Lock, User, Loader2, Zap } from 'lucide-react';
+import { MessageSquare, Lock, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,15 +55,11 @@ export default function Login() {
           {/* Logo area */}
           <div className="flex flex-col items-center mb-8">
             <div className="relative mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.15)]">
-                <Bot className="w-7 h-7 text-primary" />
-              </div>
-              <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background flex items-center justify-center">
-                <Zap className="w-2 h-2 text-primary-foreground" />
+              <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+                <MessageSquare className="w-7 h-7 text-primary-foreground" fill="currentColor" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Assistant Hub</h1>
-            <p className="text-sm text-muted-foreground mt-1">Secure admin access portal</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Assistant</h1>
           </div>
 
           {/* Login Card */}
@@ -111,7 +107,7 @@ export default function Login() {
           </div>
 
           <p className="text-center text-xs text-muted-foreground/50 mt-6">
-            Secured · Encrypted · Enterprise Grade
+            &copy; {new Date().getFullYear()} Assistant
           </p>
         </div>
       </div>

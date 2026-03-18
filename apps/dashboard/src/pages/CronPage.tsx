@@ -184,7 +184,7 @@ export default function CronPage() {
                         size="icon"
                         className={`h-8 w-8 transition-opacity ${job.enabled ? "text-amber-600 hover:text-amber-700 hover:bg-amber-100/50" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100/50"}`}
                         onClick={() => handleToggleState(job)}
-                        title={job.enabled ? "Halt Interval" : "Unfreeze Interval"}
+                        title={job.enabled ? "Pause Job" : "Resume Job"}
                       >
                         {job.enabled ? <Square size={16} /> : <Play size={16} />}
                       </Button>
@@ -193,7 +193,7 @@ export default function CronPage() {
                         size="icon"
                         className="h-8 w-8 hover:text-primary transition-opacity"
                         onClick={() => handleOpenModal(job)}
-                        title="Edit Architecture"
+                        title="Edit Job"
                       >
                         <Edit size={16} />
                       </Button>

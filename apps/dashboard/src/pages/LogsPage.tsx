@@ -32,7 +32,7 @@ export default function LogsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-3xl font-bold tracking-tight">Execution Logs</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Command Logs</h2>
           <p className="text-muted-foreground">
             View the history of executed commands and their outputs.
           </p>
@@ -69,7 +69,7 @@ export default function LogsPage() {
                   <TableHead className="w-[180px]">Timestamp</TableHead>
                   <TableHead className="w-[150px]">Command</TableHead>
                   <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead>Execution Output</TableHead>
+                  <TableHead>Output</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

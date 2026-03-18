@@ -23,7 +23,7 @@ function DashboardLayout() {
         <main className="flex-1 overflow-auto bg-background min-h-screen">
           <div className="flex items-center px-4 py-2 min-h-12 md:hidden bg-card border-b border-border sticky top-0 z-10">
             <SidebarTrigger />
-            <h1 className="ml-3 font-semibold text-sm tracking-tight text-foreground">Assistant Hub</h1>
+            <h1 className="ml-3 font-semibold text-sm tracking-tight text-foreground">Assistant</h1>
           </div>
           <div className="mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-6 space-y-4">
             <Routes>

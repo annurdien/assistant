@@ -86,8 +86,8 @@ export default function CommandForm({ initialData = {}, onSubmit, isLoading }: C
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <Label className="text-base font-semibold">Execution Script</Label>
-                <p className="text-sm text-muted-foreground mt-1">The JavaScript sandbox code executed when this command is triggered.</p>
+                <Label className="text-base font-semibold">Script</Label>
+                <p className="text-sm text-muted-foreground mt-1">The JavaScript code that runs when this command is triggered.</p>
               </div>
               <span className="text-xs font-mono text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-md shadow-sm hidden sm:block">export default async function (ctx)</span>
             </div>

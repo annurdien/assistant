@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, type CommandInput } from '../services/api';
 import CommandForm from '../components/CommandForm';
+import CommandTemplateGallery, { type CommandTemplate } from '../components/CommandTemplateGallery';
 import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ export default function CommandEditor() {
   const navigate = useNavigate();
 
   const [initialData, setInitialData] = useState<Partial<CommandInput> | null>(null);
+  const [formKey, setFormKey] = useState(0); // bump to force form reset when a template is chosen
   const [isLoadingGlobal, setIsLoadingGlobal] = useState(isEditing);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,10 +22,7 @@ export default function CommandEditor() {
     if (isEditing && id) {
       loadCommand(id);
     } else {
-      setInitialData({
-        enabled: true,
-        script: `export default async function (ctx) {\n  const { input, ai, expense, db, reply } = ctx;\n  // Your execution logic here\n  return "Success!";\n}`
-      });
+      setInitialData({ enabled: true, script: '' });
     }
   }, [id, isEditing]);
 
@@ -43,6 +42,16 @@ export default function CommandEditor() {
     } finally {
       setIsLoadingGlobal(false);
     }
+  };
+
+  const handleTemplateSelect = (template: CommandTemplate) => {
+    setInitialData({
+      name: template.name,
+      description: template.description,
+      script: template.script,
+      enabled: true,
+    });
+    setFormKey(k => k + 1); // remount the form so all fields reset cleanly
   };
 
   const handleSubmit = async (data: CommandInput) => {
@@ -96,12 +105,18 @@ export default function CommandEditor() {
           </p>
         </div>
       </div>
-      
-      {initialData && (
-        <CommandForm 
-          initialData={initialData} 
-          onSubmit={handleSubmit} 
-          isLoading={isSaving} 
+
+      {/* Template gallery — only shown on create mode */}
+      {!isEditing && (
+        <CommandTemplateGallery onSelect={handleTemplateSelect} />
+      )}
+
+      {initialData !== null && (
+        <CommandForm
+          key={formKey}
+          initialData={initialData}
+          onSubmit={handleSubmit}
+          isLoading={isSaving}
         />
       )}
     </div>
