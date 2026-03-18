@@ -81,3 +81,13 @@ export type CronJob = Prisma.CronJobModel
  * 
  */
 export type Reminder = Prisma.ReminderModel
+/**
+ * Model Secret
+ * 
+ */
+export type Secret = Prisma.SecretModel
+/**
+ * Model UserQuota
+ * 
+ */
+export type UserQuota = Prisma.UserQuotaModel

@@ -58,7 +58,9 @@ export const ModelName = {
   Setting: 'Setting',
   Session: 'Session',
   CronJob: 'CronJob',
-  Reminder: 'Reminder'
+  Reminder: 'Reminder',
+  Secret: 'Secret',
+  UserQuota: 'UserQuota'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -164,6 +166,30 @@ export const ReminderScalarFieldEnum = {
 } as const
 
 export type ReminderScalarFieldEnum = (typeof ReminderScalarFieldEnum)[keyof typeof ReminderScalarFieldEnum]
+
+
+export const SecretScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SecretScalarFieldEnum = (typeof SecretScalarFieldEnum)[keyof typeof SecretScalarFieldEnum]
+
+
+export const UserQuotaScalarFieldEnum = {
+  id: 'id',
+  jid: 'jid',
+  commandCount: 'commandCount',
+  tokensUsed: 'tokensUsed',
+  resetAt: 'resetAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserQuotaScalarFieldEnum = (typeof UserQuotaScalarFieldEnum)[keyof typeof UserQuotaScalarFieldEnum]
 
 
 export const SortOrder = {

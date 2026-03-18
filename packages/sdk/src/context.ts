@@ -17,6 +17,9 @@ export type Context = {
   };
   media?: { mimetype: string; data: string }[] | undefined;
   remind: (time: number | string | Date, message: string) => Promise<void>;
+  env: {
+    get: (key: string) => Promise<string | undefined>;
+  };
 };
 
 export interface ExecutionContextData {
@@ -96,6 +99,13 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     }
   };
 
+  const env = {
+    get: async (key: string) => {
+      const secret = await db.secret.findUnique({ where: { key } });
+      return secret?.value;
+    }
+  };
+
   // Build the structured context payload
   const context: Context = {
     input: normalizedInput,
@@ -105,7 +115,8 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     reply,
     session,
     media: payload.media,
-    remind
+    remind,
+    env
   };
 
   // Freeze the payload to prevent destructive mutations by the executed sandbox script

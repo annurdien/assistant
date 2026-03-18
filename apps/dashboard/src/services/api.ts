@@ -49,6 +49,32 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   return response;
 }
 
+export interface Secret {
+  id: string;
+  key: string;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SecretInput {
+  key: string;
+  value: string;
+}
+
+export interface Secret {
+  id: string;
+  key: string;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SecretInput {
+  key: string;
+  value: string;
+}
+
 export const api = {
   async getCommands(): Promise<Command[]> {
     const response = await fetchWithAuth(`/commands`);
@@ -157,6 +183,27 @@ export const api = {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete cron job');
+    }
+  },
+  secret: {
+    list: async (): Promise<Secret[]> => {
+      const response = await fetchWithAuth(`/secrets`);
+      if (!response.ok) throw new Error('Failed to fetch secrets');
+      return response.json();
+    },
+    create: async (data: SecretInput): Promise<Secret> => {
+      const response = await fetchWithAuth(`/secrets`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create secret');
+      return response.json();
+    },
+    delete: async (id: string): Promise<void> => {
+      const response = await fetchWithAuth(`/secrets/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete secret');
     }
   }
 };

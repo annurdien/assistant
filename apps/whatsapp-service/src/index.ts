@@ -60,7 +60,7 @@ async function sendToApi(text: string, jid: string, media?: any): Promise<string
       return `❌ Execution Failed: ${data.error || 'Unknown error'}`;
     }
 
-    return data.output || '✅ Command executed successfully (no output).';
+    return data.output || '';
   } catch (error: any) {
     logger.error(`API Request failed: ${error.message}`);
     return `⚠️ System Error: Unable to reach the API server.`;
@@ -149,12 +149,14 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
 
   const responseText = await sendToApi(text as string, senderJid as string, mediaPayload);
   
-  if (responseText.includes('CommandNotFoundError') || responseText.includes('Invalid command format')) {
-    if (globalSettings.WA_REPLY_UNKNOWN === 'true') {
-      await sendReply(sock, senderJid, '❓ Unknown command or invalid format. Please check your spelling.', msg);
+  if (responseText) {
+    if (responseText.includes('CommandNotFoundError') || responseText.includes('Invalid command format')) {
+      if (globalSettings.WA_REPLY_UNKNOWN === 'true') {
+        await sendReply(sock, senderJid, '❓ Unknown command or invalid format. Please check your spelling.', msg);
+      }
+    } else {
+      await sendReply(sock, senderJid, responseText, msg);
     }
-  } else {
-    await sendReply(sock, senderJid, responseText, msg);
   }
 
   try {
@@ -260,7 +262,9 @@ async function initWhatsApp() {
   sock.ev.on('creds.update', saveCreds);
 
   sock.ev.on('messages.upsert', async (m: any) => {
-    if (m.type !== 'notify') return;
+    // 'notify' handles standard messages. 
+    // 'append' handles "Message Yourself" syncs from linked devices!
+    if (m.type !== 'notify' && m.type !== 'append') return;
     
     for (const msg of m.messages) {
       await handleIncomingMessage(sock, msg);

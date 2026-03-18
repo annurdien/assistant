@@ -391,7 +391,9 @@ export const ModelName = {
   Setting: 'Setting',
   Session: 'Session',
   CronJob: 'CronJob',
-  Reminder: 'Reminder'
+  Reminder: 'Reminder',
+  Secret: 'Secret',
+  UserQuota: 'UserQuota'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "command" | "expense" | "log" | "admin" | "setting" | "session" | "cronJob" | "reminder"
+    modelProps: "command" | "expense" | "log" | "admin" | "setting" | "session" | "cronJob" | "reminder" | "secret" | "userQuota"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1003,6 +1005,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Secret: {
+      payload: Prisma.$SecretPayload<ExtArgs>
+      fields: Prisma.SecretFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SecretFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SecretFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>
+        }
+        findFirst: {
+          args: Prisma.SecretFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SecretFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>
+        }
+        findMany: {
+          args: Prisma.SecretFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>[]
+        }
+        create: {
+          args: Prisma.SecretCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>
+        }
+        createMany: {
+          args: Prisma.SecretCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SecretCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>[]
+        }
+        delete: {
+          args: Prisma.SecretDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>
+        }
+        update: {
+          args: Prisma.SecretUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>
+        }
+        deleteMany: {
+          args: Prisma.SecretDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SecretUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SecretUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>[]
+        }
+        upsert: {
+          args: Prisma.SecretUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SecretPayload>
+        }
+        aggregate: {
+          args: Prisma.SecretAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSecret>
+        }
+        groupBy: {
+          args: Prisma.SecretGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SecretGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SecretCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SecretCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserQuota: {
+      payload: Prisma.$UserQuotaPayload<ExtArgs>
+      fields: Prisma.UserQuotaFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserQuotaFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserQuotaFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>
+        }
+        findFirst: {
+          args: Prisma.UserQuotaFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserQuotaFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>
+        }
+        findMany: {
+          args: Prisma.UserQuotaFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>[]
+        }
+        create: {
+          args: Prisma.UserQuotaCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>
+        }
+        createMany: {
+          args: Prisma.UserQuotaCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserQuotaCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>[]
+        }
+        delete: {
+          args: Prisma.UserQuotaDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>
+        }
+        update: {
+          args: Prisma.UserQuotaUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserQuotaDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserQuotaUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserQuotaUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserQuotaUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserQuotaPayload>
+        }
+        aggregate: {
+          args: Prisma.UserQuotaAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserQuota>
+        }
+        groupBy: {
+          args: Prisma.UserQuotaGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserQuotaGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserQuotaCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserQuotaCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1129,6 +1279,30 @@ export const ReminderScalarFieldEnum = {
 } as const
 
 export type ReminderScalarFieldEnum = (typeof ReminderScalarFieldEnum)[keyof typeof ReminderScalarFieldEnum]
+
+
+export const SecretScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SecretScalarFieldEnum = (typeof SecretScalarFieldEnum)[keyof typeof SecretScalarFieldEnum]
+
+
+export const UserQuotaScalarFieldEnum = {
+  id: 'id',
+  jid: 'jid',
+  commandCount: 'commandCount',
+  tokensUsed: 'tokensUsed',
+  resetAt: 'resetAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserQuotaScalarFieldEnum = (typeof UserQuotaScalarFieldEnum)[keyof typeof UserQuotaScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1356,6 +1530,8 @@ export type GlobalOmitConfig = {
   session?: Prisma.SessionOmit
   cronJob?: Prisma.CronJobOmit
   reminder?: Prisma.ReminderOmit
+  secret?: Prisma.SecretOmit
+  userQuota?: Prisma.UserQuotaOmit
 }
 
 /* Types for Logging */

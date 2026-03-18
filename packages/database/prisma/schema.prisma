@@ -76,3 +76,21 @@ model Reminder {
   text      String
   createdAt DateTime @default(now())
 }
+
+model Secret {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserQuota {
+  id           String   @id @default(uuid())
+  jid          String   @unique
+  commandCount Int      @default(0)
+  tokensUsed   Int      @default(0)
+  resetAt      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

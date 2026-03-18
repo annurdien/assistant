@@ -1,11 +1,13 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Bot, TerminalSquare, List, Settings, LogOut, Clock } from 'lucide-react';
+import { Bot, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity } from 'lucide-react';
 import CommandList from './pages/CommandList';
 import CommandEditor from './pages/CommandEditor';
 import CronPage from './pages/CronPage';
 import Login from './pages/Login';
 import LogsPage from './pages/LogsPage';
 import SettingsPage from './pages/SettingsPage';
+import { SecretsPage } from './pages/SecretsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -73,6 +75,26 @@ function Sidebar() {
                 </span>
               </Link>
             </li>
+            <li className={`nav-item ${isActive('/secrets') ? 'active' : ''}`}>
+              <Link className="nav-link" to="/secrets">
+                <span className="nav-link-icon d-md-none d-lg-inline-block">
+                  <KeyRound size={18} />
+                </span>
+                <span className="nav-link-title">
+                  Secure Vault
+                </span>
+              </Link>
+            </li>
+            <li className={`nav-item ${isActive('/analytics') ? 'active' : ''}`}>
+              <Link className="nav-link" to="/analytics">
+                <span className="nav-link-icon d-md-none d-lg-inline-block">
+                  <Activity size={18} />
+                </span>
+                <span className="nav-link-title">
+                  Analytics
+                </span>
+              </Link>
+            </li>
           </ul>
 
           <div className="mt-auto p-3">
@@ -102,6 +124,8 @@ function MainLayout() {
                 <Route path="/cron" element={<CronPage />} />
                 <Route path="/logs" element={<LogsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/secrets" element={<SecretsPage />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
               </Routes>
             </div>
           </main>

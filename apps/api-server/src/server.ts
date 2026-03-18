@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { parseCommand, executeCommand } from '@assistant/core';
+import { prisma } from '@assistant/database';
 import { getCommandByName, CommandNotFoundError, CommandDisabledError } from './commandRegistry.js';
 import { commandRoutes } from './routes/commands.js';
 import cors from '@fastify/cors';
@@ -10,6 +11,7 @@ import settingsRoutes from './routes/settings.js';
 import logsRoutes from './routes/logs.js';
 import cronRoutes from './routes/cron.js';
 import reminderRoutes from './routes/reminders.js';
+import secretsRoutes from './routes/secrets.js';
 
 const logger = new ConsoleLogger('api-server');
 
@@ -32,6 +34,7 @@ export function buildServer() {
   server.register(logsRoutes, { prefix: '/logs' });
   server.register(cronRoutes, { prefix: '/cron' });
   server.register(reminderRoutes, { prefix: '/reminders' });
+  server.register(secretsRoutes, { prefix: '/secrets' });
 
   server.register(commandRoutes, { prefix: '/commands' });
 
@@ -60,6 +63,27 @@ export function buildServer() {
 
       logger.info(`Orchestrating command execution: '${command.name}' with input: '${input}'`);
 
+      // Quota & Rate Limiting (Phase 2B)
+      if (body.jid) {
+        let quota = await prisma.userQuota.findUnique({ where: { jid: body.jid }});
+        const now = new Date();
+        
+        if (!quota || quota.resetAt < now) {
+          const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+          quota = await prisma.userQuota.upsert({
+            where: { jid: body.jid },
+            update: { commandCount: 0, resetAt: tomorrow },
+            create: { jid: body.jid, commandCount: 0, resetAt: tomorrow }
+          });
+        }
+        
+        const MAX_DAILY_COMMANDS = parseInt(process.env.MAX_DAILY_COMMANDS || '50', 10);
+        if (quota.commandCount >= MAX_DAILY_COMMANDS) {
+           logger.warn(`Rejected execution from ${body.jid} (Quota Exceeded)`);
+           return reply.status(403).send({ error: `🛑 Daily quota exceeded. You have used ${MAX_DAILY_COMMANDS}/${MAX_DAILY_COMMANDS} commands today.` });
+        }
+      }
+
       const executionResult = await executeCommand(command.script, payload, async (msg: string) => {
         if (body.jid) {
           try {
@@ -74,6 +98,29 @@ export function buildServer() {
         }
       });
 
+      // Increment Quota
+      if (body.jid) {
+        try {
+          await prisma.userQuota.update({
+            where: { jid: body.jid },
+            data: { commandCount: { increment: 1 } }
+          });
+        } catch (e) {}
+      }
+
+      // Commit telemetry to Dashboard Logs
+      try {
+        await prisma.log.create({
+          data: {
+            commandName: command.name,
+            status: executionResult.success ? 'SUCCESS' : 'FAILED',
+            output: executionResult.output ? String(executionResult.output).substring(0, 1000) : 'No trailing output'
+          }
+        });
+      } catch (logErr: any) {
+        logger.error(`Telemetry save failed: ${logErr.message}`);
+      }
+
       return reply.send({
         success: executionResult.success,
         output: executionResult.output,
@@ -82,6 +129,20 @@ export function buildServer() {
     } catch (error: any) {
       logger.error(`Failed to execute command: ${error.message}`);
       
+      const body = request.body as any;
+      if (body && typeof body.text === 'string') {
+         const parsed = parseCommand(body.text);
+         if (parsed) {
+           prisma.log.create({
+             data: {
+               commandName: parsed.command,
+               status: 'FAILED',
+               output: String(error.message).substring(0, 1000)
+             }
+           }).catch(() => {});
+         }
+      }
+
       if (error instanceof CommandNotFoundError) {
         return reply.status(404).send({ error: error.message });
       }
