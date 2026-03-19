@@ -95,27 +95,52 @@ if (args[0].toLowerCase() === 'summary') {
 }
 
 // -- ADD EXPENSE --
-const amount = parseFloat(args[0]);
-if (isNaN(amount) || amount <= 0) {
-  await ctx.reply(`❌ Invalid amount. Use: /expense <number> [category] [note]\nExample: \`/expense 50000 Food lunch\``);
-  return;
-}
-
-// Detect optional category (second word if it matches a known category, case-insensitive)
+let amount = parseFloat(args[0]);
 let category = 'Other';
-let noteWords = [];
+let note = null;
 
-if (args.length >= 2) {
-  const potentialCat = CATEGORIES.find(c => c.toLowerCase() === args[1].toLowerCase());
-  if (potentialCat) {
-    category = potentialCat;
-    noteWords = args.slice(2);
-  } else {
-    noteWords = args.slice(1);
+if (isNaN(amount) || amount <= 0) {
+  // Fallback to Natural Language Parsing via AI
+  await ctx.reply(`⏳ Parsing expense...`);
+  const prompt = `
+Extract the expense details from the following text and return ONLY a valid JSON object. Do not wrap it in markdown blocks or add any other text.
+Text: "${raw}"
+
+The JSON must have the following keys:
+- "amount": a positive number (parse "50k" as 50000, "1.5m" as 1500000, etc.)
+- "category": must be exactly one of: ${CATEGORIES.join(', ')} (guess the best fit, default to "Other" if unsure)
+- "note": a short description of the expense based on the text (string or null)
+`;
+  
+  try {
+    const aiResponse = await ctx.ai.ask(prompt);
+    // Strip possible markdown formatting like \`\`\`json ... \`\`\`
+    const jsonStr = aiResponse.replace(/^\`\`\`json\s*/i, '').replace(/\s*\`\`\`$/, '').trim();
+    const parsed = JSON.parse(jsonStr);
+    
+    amount = parseFloat(parsed.amount);
+    if (isNaN(amount) || amount <= 0) throw new Error("Invalid amount parsed");
+    
+    category = CATEGORIES.includes(parsed.category) ? parsed.category : 'Other';
+    note = parsed.note || null;
+  } catch (err) {
+    await ctx.reply(`❌ Could not understand the expense. Please use the exact format:\n\`/expense <number> [category] [note]\`\nExample: \`/expense 50000 Food lunch\``);
+    return;
   }
+} else {
+  // Traditional precise parsing
+  let noteWords = [];
+  if (args.length >= 2) {
+    const potentialCat = CATEGORIES.find(c => c.toLowerCase() === args[1].toLowerCase());
+    if (potentialCat) {
+      category = potentialCat;
+      noteWords = args.slice(2);
+    } else {
+      noteWords = args.slice(1);
+    }
+  }
+  note = noteWords.join(' ') || null;
 }
-
-const note = noteWords.join(' ') || null;
 
 await ctx.expense.add(amount, note || '', category);
 
