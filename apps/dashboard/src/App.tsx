@@ -29,6 +29,7 @@ function DashboardLayout() {
           <div className="mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-6 space-y-4">
             <Routes>
               <Route path="/" element={<CommandEditor />} />
+              <Route path="/edit/:id" element={<CommandEditor />} />
               <Route path="/commands" element={<CommandList />} />
               <Route path="/cron" element={<CronPage />} />
               <Route path="/logs" element={<LogsPage />} />

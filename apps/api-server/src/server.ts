@@ -57,9 +57,12 @@ export function buildServer() {
         return reply.status(400).send({ error: "Missing or invalid 'text' field in request body." });
       }
 
-      const parsed = parseCommand(body.text);
+      const prefixSetting = await prisma.setting.findUnique({ where: { key: 'WA_COMMAND_PREFIX' } });
+      const prefix = prefixSetting?.value ?? '/';
+
+      const parsed = parseCommand(body.text, prefix);
       if (!parsed) {
-        return reply.status(400).send({ error: "Invalid command format. Ensure it starts with '/'." });
+        return reply.status(400).send({ error: `Invalid command format. Ensure it starts with '${prefix}'.` });
       }
 
       const command = await getCommandByName(parsed.command);

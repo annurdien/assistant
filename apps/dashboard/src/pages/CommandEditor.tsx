@@ -13,12 +13,16 @@ export default function CommandEditor() {
   const navigate = useNavigate();
 
   const [initialData, setInitialData] = useState<Partial<CommandInput> | null>(null);
+  const [prefix, setPrefix] = useState<string>('/');
   const [formKey, setFormKey] = useState(0); // bump to force form reset when a template is chosen
   const [isLoadingGlobal, setIsLoadingGlobal] = useState(isEditing);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Fetch settings globally on mount even if not editing
+    api.settings.getSettings().then(st => setPrefix(st['WA_COMMAND_PREFIX'] ?? '/')).catch(() => {});
+
     if (isEditing && id) {
       loadCommand(id);
     } else {
@@ -117,6 +121,7 @@ export default function CommandEditor() {
           initialData={initialData}
           onSubmit={handleSubmit}
           isLoading={isSaving}
+          prefix={prefix}
         />
       )}
     </div>

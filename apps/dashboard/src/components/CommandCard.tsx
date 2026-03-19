@@ -19,9 +19,10 @@ import {
 interface Props {
   command: Command;
   onDelete: () => void;
+  prefix?: string;
 }
 
-export default function CommandCard({ command, onDelete }: Props) {
+export default function CommandCard({ command, onDelete, prefix = '/' }: Props) {
   const navigate = useNavigate();
 
   return (
@@ -30,7 +31,7 @@ export default function CommandCard({ command, onDelete }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <TerminalSquare className="w-5 h-5 text-primary" />
-            <CardTitle className="text-xl">/{command.name}</CardTitle>
+            <CardTitle className="text-xl">{prefix}{command.name}</CardTitle>
           </div>
           {!command.enabled && <Badge variant="secondary">Disabled</Badge>}
         </div>
@@ -51,7 +52,7 @@ export default function CommandCard({ command, onDelete }: Props) {
       </CardContent>
 
       <CardFooter className="pt-4 flex justify-end gap-2 border-t border-border/20">
-        <Button variant="outline" size="sm" onClick={() => navigate(`/?id=${command.id}`)}>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/edit/${command.id}`)}>
           <Pencil className="w-3.5 h-3.5 mr-1.5" />
           Edit
         </Button>

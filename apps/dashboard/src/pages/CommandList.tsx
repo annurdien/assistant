@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 
 export default function CommandList() {
   const [commands, setCommands] = useState<Command[]>([]);
+  const [prefix, setPrefix] = useState<string>('/');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,8 +21,12 @@ export default function CommandList() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await api.getCommands();
+      const [data, settingsData] = await Promise.all([
+        api.getCommands(),
+        api.settings.getSettings()
+      ]);
       setCommands(data);
+      setPrefix(settingsData['WA_COMMAND_PREFIX'] ?? '/');
     } catch (err: any) {
       setError(err.message || 'Failed to fetch commands.');
     } finally {
@@ -109,6 +114,7 @@ export default function CommandList() {
             key={cmd.id}
             command={cmd} 
             onDelete={() => handleDelete(cmd.id)} 
+            prefix={prefix}
           />
         ))}
       </div>

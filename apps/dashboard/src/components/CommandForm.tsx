@@ -13,9 +13,10 @@ interface CommandFormProps {
   initialData?: Partial<CommandInput>;
   onSubmit: (data: CommandInput) => Promise<void>;
   isLoading: boolean;
+  prefix?: string;
 }
 
-export default function CommandForm({ initialData = {}, onSubmit, isLoading }: CommandFormProps) {
+export default function CommandForm({ initialData = {}, onSubmit, isLoading, prefix = '/' }: CommandFormProps) {
   const [name, setName] = useState(initialData.name || '');
   const [description, setDescription] = useState(initialData.description || '');
   const [script, setScript] = useState(initialData.script || '');
@@ -37,7 +38,7 @@ export default function CommandForm({ initialData = {}, onSubmit, isLoading }: C
   return (
     <Card className="shadow-sm border">
       <CardHeader className="bg-secondary/20 border-b pb-4 mb-4">
-        <CardTitle>{initialData.name ? `/${initialData.name}` : 'Command Configuration'}</CardTitle>
+        <CardTitle>{initialData.name ? `${prefix}${initialData.name}` : 'Command Configuration'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
