@@ -16,7 +16,6 @@ const fastify = Fastify({ logger: false });
 const API_EXECUTE_URL = process.env.API_EXECUTE_URL || 'http://localhost:3000/execute';
 
 export let globalSettings = {
-  WA_ALLOWED_NUMBERS: '',
   WA_COMMAND_PREFIX: '/',
   WA_MAINTENANCE_MODE: 'false',
   WA_REPLY_UNKNOWN: 'false'
@@ -24,7 +23,7 @@ export let globalSettings = {
 
 async function fetchWhatsAppSettings() {
   try {
-    const keys = ['WA_ALLOWED_NUMBERS', 'WA_COMMAND_PREFIX', 'WA_MAINTENANCE_MODE', 'WA_REPLY_UNKNOWN'];
+    const keys = ['WA_COMMAND_PREFIX', 'WA_MAINTENANCE_MODE', 'WA_REPLY_UNKNOWN'];
     const dbSettings = await prisma.setting.findMany({
       where: { key: { in: keys } }
     });
@@ -98,10 +97,22 @@ async function handleIncomingMessage(sock: ReturnType<typeof makeWASocket>, msg:
     return;
   }
 
-  // Check Whitelist config
-  const allowedNumbers = globalSettings.WA_ALLOWED_NUMBERS.split(',').map(s => s.trim()).filter(Boolean);
-  
-  const isWhitelisted = allowedNumbers.length === 0 || allowedNumbers.includes(phoneNumber);
+  // Check Whitelist config dynamically from DB
+  const whitelistCount = await prisma.whitelist.count();
+  let isWhitelisted = true;
+
+  if (whitelistCount > 0) {
+    const entry = await prisma.whitelist.findFirst({
+      where: {
+        OR: [
+          { jid: senderJid },
+          { jid: authorJid },
+          { jid: phoneNumber }
+        ]
+      }
+    });
+    isWhitelisted = !!entry;
+  }
   
   // Always permit the authenticated device owner if fromMe is true
   if (!isWhitelisted && !msg.key.fromMe) {

@@ -217,6 +217,13 @@ exports.Prisma.DocumentEmbeddingScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.WhitelistScalarFieldEnum = {
+  id: 'id',
+  jid: 'jid',
+  name: 'name',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -255,7 +262,8 @@ exports.Prisma.ModelName = {
   Secret: 'Secret',
   UserQuota: 'UserQuota',
   Document: 'Document',
-  DocumentEmbedding: 'DocumentEmbedding'
+  DocumentEmbedding: 'DocumentEmbedding',
+  Whitelist: 'Whitelist'
 };
 
 /**

@@ -114,3 +114,10 @@ model DocumentEmbedding {
 
   @@index([documentId])
 }
+
+model Whitelist {
+  id        String   @id @default(uuid())
+  jid       String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}

@@ -12,6 +12,7 @@ import logsRoutes from './routes/logs.js';
 import cronRoutes from './routes/cron.js';
 import reminderRoutes from './routes/reminders.js';
 import secretsRoutes from './routes/secrets.js';
+import whitelistRoutes from './routes/whitelist.js';
 import kbRoutes from './routes/kb.js';
 import multipart from '@fastify/multipart';
 
@@ -41,6 +42,7 @@ export function buildServer() {
   server.register(cronRoutes, { prefix: '/cron' });
   server.register(reminderRoutes, { prefix: '/reminders' });
   server.register(secretsRoutes, { prefix: '/secrets' });
+  server.register(whitelistRoutes, { prefix: '/whitelist' });
   server.register(kbRoutes, { prefix: '/api/kb' });
 
   server.register(commandRoutes, { prefix: '/commands' });

@@ -62,17 +62,17 @@ export interface SecretInput {
   value: string;
 }
 
-export interface Secret {
+
+export interface WhitelistEntry {
   id: string;
-  key: string;
-  value: string;
+  jid: string;
+  name?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
-export interface SecretInput {
-  key: string;
-  value: string;
+export interface WhitelistInput {
+  jid: string;
+  name?: string;
 }
 
 export const api = {
@@ -204,6 +204,28 @@ export const api = {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete secret');
+    }
+  },
+
+  whitelist: {
+    list: async (): Promise<WhitelistEntry[]> => {
+      const response = await fetchWithAuth(`/whitelist`);
+      if (!response.ok) throw new Error('Failed to fetch whitelist');
+      return response.json();
+    },
+    add: async (data: WhitelistInput): Promise<WhitelistEntry> => {
+      const response = await fetchWithAuth(`/whitelist`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to add to whitelist');
+      return response.json();
+    },
+    delete: async (id: string): Promise<void> => {
+      const response = await fetchWithAuth(`/whitelist/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to remove from whitelist');
     }
   },
 
