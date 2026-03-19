@@ -76,7 +76,7 @@ export default function Login() {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     id="username"
-                    placeholder="admin"
+                    placeholder="username"
                     className="pl-8 h-9 bg-background border-border/60 focus-visible:ring-primary/50 text-sm"
                     value={username}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
@@ -91,7 +91,7 @@ export default function Login() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="password"
                     className="pl-8 h-9 bg-background border-border/60 focus-visible:ring-primary/50 text-sm"
                     value={password}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}

@@ -3025,6 +3025,8 @@ export namespace Prisma {
     id: string | null
     amount: number | null
     note: string | null
+    category: string | null
+    userJid: string | null
     createdAt: Date | null
   }
 
@@ -3032,6 +3034,8 @@ export namespace Prisma {
     id: string | null
     amount: number | null
     note: string | null
+    category: string | null
+    userJid: string | null
     createdAt: Date | null
   }
 
@@ -3039,6 +3043,8 @@ export namespace Prisma {
     id: number
     amount: number
     note: number
+    category: number
+    userJid: number
     createdAt: number
     _all: number
   }
@@ -3056,6 +3062,8 @@ export namespace Prisma {
     id?: true
     amount?: true
     note?: true
+    category?: true
+    userJid?: true
     createdAt?: true
   }
 
@@ -3063,6 +3071,8 @@ export namespace Prisma {
     id?: true
     amount?: true
     note?: true
+    category?: true
+    userJid?: true
     createdAt?: true
   }
 
@@ -3070,6 +3080,8 @@ export namespace Prisma {
     id?: true
     amount?: true
     note?: true
+    category?: true
+    userJid?: true
     createdAt?: true
     _all?: true
   }
@@ -3164,6 +3176,8 @@ export namespace Prisma {
     id: string
     amount: number
     note: string | null
+    category: string
+    userJid: string | null
     createdAt: Date
     _count: ExpenseCountAggregateOutputType | null
     _avg: ExpenseAvgAggregateOutputType | null
@@ -3190,6 +3204,8 @@ export namespace Prisma {
     id?: boolean
     amount?: boolean
     note?: boolean
+    category?: boolean
+    userJid?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["expense"]>
 
@@ -3197,6 +3213,8 @@ export namespace Prisma {
     id?: boolean
     amount?: boolean
     note?: boolean
+    category?: boolean
+    userJid?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["expense"]>
 
@@ -3204,6 +3222,8 @@ export namespace Prisma {
     id?: boolean
     amount?: boolean
     note?: boolean
+    category?: boolean
+    userJid?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["expense"]>
 
@@ -3211,10 +3231,12 @@ export namespace Prisma {
     id?: boolean
     amount?: boolean
     note?: boolean
+    category?: boolean
+    userJid?: boolean
     createdAt?: boolean
   }
 
-  export type ExpenseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "amount" | "note" | "createdAt", ExtArgs["result"]["expense"]>
+  export type ExpenseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "amount" | "note" | "category" | "userJid" | "createdAt", ExtArgs["result"]["expense"]>
 
   export type $ExpensePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Expense"
@@ -3223,6 +3245,8 @@ export namespace Prisma {
       id: string
       amount: number
       note: string | null
+      category: string
+      userJid: string | null
       createdAt: Date
     }, ExtArgs["result"]["expense"]>
     composites: {}
@@ -3650,6 +3674,8 @@ export namespace Prisma {
     readonly id: FieldRef<"Expense", 'String'>
     readonly amount: FieldRef<"Expense", 'Float'>
     readonly note: FieldRef<"Expense", 'String'>
+    readonly category: FieldRef<"Expense", 'String'>
+    readonly userJid: FieldRef<"Expense", 'String'>
     readonly createdAt: FieldRef<"Expense", 'DateTime'>
   }
     
@@ -15224,6 +15250,8 @@ export namespace Prisma {
     id: 'id',
     amount: 'amount',
     note: 'note',
+    category: 'category',
+    userJid: 'userJid',
     createdAt: 'createdAt'
   };
 
@@ -15540,6 +15568,8 @@ export namespace Prisma {
     id?: StringFilter<"Expense"> | string
     amount?: FloatFilter<"Expense"> | number
     note?: StringNullableFilter<"Expense"> | string | null
+    category?: StringFilter<"Expense"> | string
+    userJid?: StringNullableFilter<"Expense"> | string | null
     createdAt?: DateTimeFilter<"Expense"> | Date | string
   }
 
@@ -15547,6 +15577,8 @@ export namespace Prisma {
     id?: SortOrder
     amount?: SortOrder
     note?: SortOrderInput | SortOrder
+    category?: SortOrder
+    userJid?: SortOrderInput | SortOrder
     createdAt?: SortOrder
   }
 
@@ -15557,6 +15589,8 @@ export namespace Prisma {
     NOT?: ExpenseWhereInput | ExpenseWhereInput[]
     amount?: FloatFilter<"Expense"> | number
     note?: StringNullableFilter<"Expense"> | string | null
+    category?: StringFilter<"Expense"> | string
+    userJid?: StringNullableFilter<"Expense"> | string | null
     createdAt?: DateTimeFilter<"Expense"> | Date | string
   }, "id">
 
@@ -15564,6 +15598,8 @@ export namespace Prisma {
     id?: SortOrder
     amount?: SortOrder
     note?: SortOrderInput | SortOrder
+    category?: SortOrder
+    userJid?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: ExpenseCountOrderByAggregateInput
     _avg?: ExpenseAvgOrderByAggregateInput
@@ -15579,6 +15615,8 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Expense"> | string
     amount?: FloatWithAggregatesFilter<"Expense"> | number
     note?: StringNullableWithAggregatesFilter<"Expense"> | string | null
+    category?: StringWithAggregatesFilter<"Expense"> | string
+    userJid?: StringNullableWithAggregatesFilter<"Expense"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Expense"> | Date | string
   }
 
@@ -16229,6 +16267,8 @@ export namespace Prisma {
     id?: string
     amount: number
     note?: string | null
+    category?: string
+    userJid?: string | null
     createdAt?: Date | string
   }
 
@@ -16236,6 +16276,8 @@ export namespace Prisma {
     id?: string
     amount: number
     note?: string | null
+    category?: string
+    userJid?: string | null
     createdAt?: Date | string
   }
 
@@ -16243,6 +16285,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     note?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    userJid?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16250,6 +16294,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     note?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    userJid?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16257,6 +16303,8 @@ export namespace Prisma {
     id?: string
     amount: number
     note?: string | null
+    category?: string
+    userJid?: string | null
     createdAt?: Date | string
   }
 
@@ -16264,6 +16312,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     note?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    userJid?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16271,6 +16321,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     note?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: StringFieldUpdateOperationsInput | string
+    userJid?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17044,6 +17096,8 @@ export namespace Prisma {
     id?: SortOrder
     amount?: SortOrder
     note?: SortOrder
+    category?: SortOrder
+    userJid?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -17055,6 +17109,8 @@ export namespace Prisma {
     id?: SortOrder
     amount?: SortOrder
     note?: SortOrder
+    category?: SortOrder
+    userJid?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -17062,6 +17118,8 @@ export namespace Prisma {
     id?: SortOrder
     amount?: SortOrder
     note?: SortOrder
+    category?: SortOrder
+    userJid?: SortOrder
     createdAt?: SortOrder
   }
 

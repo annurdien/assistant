@@ -14,6 +14,7 @@ import reminderRoutes from './routes/reminders.js';
 import secretsRoutes from './routes/secrets.js';
 import whitelistRoutes from './routes/whitelist.js';
 import kbRoutes from './routes/kb.js';
+import expenseRoutes from './routes/expenses.js';
 import multipart from '@fastify/multipart';
 
 const logger = new ConsoleLogger('api-server');
@@ -44,6 +45,7 @@ export function buildServer() {
   server.register(secretsRoutes, { prefix: '/secrets' });
   server.register(whitelistRoutes, { prefix: '/whitelist' });
   server.register(kbRoutes, { prefix: '/api/kb' });
+  server.register(expenseRoutes, { prefix: '/expenses' });
 
   server.register(commandRoutes, { prefix: '/commands' });
 

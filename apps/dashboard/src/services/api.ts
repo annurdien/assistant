@@ -260,5 +260,90 @@ export const api = {
       });
       if (!response.ok) throw new Error('Failed to delete KB doc');
     }
-  }
+  },
+
+  expenses: {
+    list: async (params?: { month?: number; year?: number; category?: string }): Promise<ExpenseListResponse> => {
+      const qs = new URLSearchParams();
+      if (params?.month) qs.set('month', String(params.month));
+      if (params?.year) qs.set('year', String(params.year));
+      if (params?.category) qs.set('category', params.category);
+      const response = await fetchWithAuth(`/expenses?${qs.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch expenses');
+      return response.json();
+    },
+    add: async (input: ExpenseInput): Promise<Expense> => {
+      const response = await fetchWithAuth('/expenses', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) throw new Error('Failed to add expense');
+      return response.json();
+    },
+    delete: async (id: string): Promise<void> => {
+      const response = await fetchWithAuth(`/expenses/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete expense');
+    },
+  },
 };
+
+// Expense types
+export interface Expense {
+  id: string;
+  amount: number;
+  note?: string;
+  category: string;
+  userJid?: string;
+  createdAt: string;
+}
+
+export interface ExpenseInput {
+  amount: number;
+  note?: string;
+  category?: string;
+  userJid?: string;
+}
+
+export interface ExpenseCategoryTotal {
+  category: string;
+  total: number;
+  count: number;
+}
+
+export interface ExpenseListResponse {
+  expenses: Expense[];
+  total: number;
+  byCategory: ExpenseCategoryTotal[];
+}
+
+/** Format a number using the given ISO 4217 currency code, e.g. formatCurrency(1500000, 'IDR') → "Rp 1.500.000" */
+export function formatCurrency(amount: number, currency = 'IDR'): string {
+  const info = CURRENCIES[currency] ?? CURRENCIES['IDR'];
+  const formatted = Math.round(amount).toLocaleString(info.locale, {
+    minimumFractionDigits: info.decimals,
+    maximumFractionDigits: info.decimals,
+  });
+  return `${info.symbol}\u00a0${formatted}`;
+}
+
+/** @deprecated use formatCurrency instead */
+export const formatIDR = (amount: number) => formatCurrency(amount, 'IDR');
+
+export interface CurrencyInfo {
+  symbol: string;
+  locale: string;
+  decimals: number;
+  label: string;
+}
+
+export const CURRENCIES: Record<string, CurrencyInfo> = {
+  IDR: { symbol: 'Rp',  locale: 'id-ID', decimals: 0, label: 'Indonesian Rupiah (IDR)' },
+  USD: { symbol: '$',   locale: 'en-US', decimals: 2, label: 'US Dollar (USD)' },
+  EUR: { symbol: '€',   locale: 'de-DE', decimals: 2, label: 'Euro (EUR)' },
+  SGD: { symbol: 'S$',  locale: 'en-SG', decimals: 2, label: 'Singapore Dollar (SGD)' },
+  MYR: { symbol: 'RM',  locale: 'ms-MY', decimals: 2, label: 'Malaysian Ringgit (MYR)' },
+  JPY: { symbol: '¥',   locale: 'ja-JP', decimals: 0, label: 'Japanese Yen (JPY)' },
+  GBP: { symbol: '£',   locale: 'en-GB', decimals: 2, label: 'British Pound (GBP)' },
+};
+
+export const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Health', 'Other'] as const;

@@ -1,4 +1,4 @@
-import { MessageSquare, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity, Database, ScrollText, ChevronRight } from 'lucide-react';
+import { MessageSquare, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity, Database, ScrollText, ChevronRight, Wallet } from 'lucide-react';
 import { ModeToggle } from './mode-toggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, Link } from 'react-router-dom';
@@ -26,8 +26,13 @@ export function AppSidebar() {
     { title: 'Command Editor', url: '/', icon: TerminalSquare, desc: 'Write & run code' },
     { title: 'Commands', url: '/commands', icon: List, desc: 'Manage commands' },
     { title: 'Automation', url: '/cron', icon: Clock, desc: 'CRON scheduling' },
+  {
+    title: 'Expenses',
+    url: '/expenses',
+    icon: Wallet,
+    tooltip: 'Track monthly spending',
+  },
   ];
-
   const adminItems = [
     { title: 'API Keys', url: '/secrets', icon: KeyRound, desc: 'Manage environment variables' },
     { title: 'Analytics', url: '/analytics', icon: Activity, desc: 'Usage insights' },

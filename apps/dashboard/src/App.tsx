@@ -10,6 +10,7 @@ import SettingsPage from './pages/SettingsPage';
 import { SecretsPage } from './pages/SecretsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { KnowledgeBasePage } from './pages/KnowledgeBasePage';
+import { ExpensePage } from './pages/ExpensePage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeProvider } from './components/theme-provider';
@@ -35,6 +36,7 @@ function DashboardLayout() {
               <Route path="/secrets" element={<SecretsPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
+              <Route path="/expenses" element={<ExpensePage />} />
             </Routes>
           </div>
         </main>

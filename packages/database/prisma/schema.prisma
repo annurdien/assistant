@@ -27,6 +27,8 @@ model Expense {
   id        String   @id @default(uuid())
   amount    Float
   note      String?
+  category  String   @default("Other")
+  userJid   String?
   createdAt DateTime @default(now())
 }
 

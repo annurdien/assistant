@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../services/api';
 import type { WhitelistEntry } from '../services/api';
-import { Save, Loader2, Server, KeyRound, MessageSquare, Shield, Trash2, Plus, Users, User } from 'lucide-react';
+import { Save, Loader2, Server, KeyRound, MessageSquare, Shield, Trash2, Plus, Users, User, Wallet } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,8 @@ export default function SettingsPage() {
     AI_MODEL: 'gemini-2.5-flash',
     WA_COMMAND_PREFIX: '/',
     WA_MAINTENANCE_MODE: 'false',
-    WA_REPLY_UNKNOWN: 'false'
+    WA_REPLY_UNKNOWN: 'false',
+    EXPENSE_CURRENCY: 'IDR',
   });
   
   const [whitelist, setWhitelist] = useState<WhitelistEntry[]>([]);
@@ -148,6 +149,13 @@ export default function SettingsPage() {
             >
               <Shield className="h-4 w-4" />
               Access Whitelist
+            </TabsTrigger>
+            <TabsTrigger 
+              value="expense" 
+              className="w-full justify-start data-[state=active]:bg-muted/50 data-[state=active]:shadow-none px-4 py-2.5 flex gap-2"
+            >
+              <Wallet className="h-4 w-4" />
+              Expense Tracker
             </TabsTrigger>
           </TabsList>
         </div>
@@ -380,6 +388,47 @@ export default function SettingsPage() {
                   </p>
                 </div>
               )}
+            </Card>
+          </TabsContent>
+
+          {/* EXPENSE */}
+          <TabsContent value="expense" className="m-0 focus-visible:outline-none focus-visible:ring-0 space-y-6 animate-in fade-in-50 duration-500">
+            <Card className="shadow-sm border-border/50">
+              <CardHeader className="bg-muted/10 border-b border-border/50">
+                <CardTitle>Expense Tracker</CardTitle>
+                <CardDescription>Configure currency and display preferences for the expense tracker.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-2 max-w-xs">
+                  <Label htmlFor="currency" className="font-semibold text-sm">Currency</Label>
+                  <Select
+                    value={settings.EXPENSE_CURRENCY || 'IDR'}
+                    onValueChange={(val) => handleChange('EXPENSE_CURRENCY', val)}
+                  >
+                    <SelectTrigger id="currency" className="bg-muted/20">
+                      <SelectValue placeholder="Select currency..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="IDR">🇮🇩 Indonesian Rupiah (IDR)</SelectItem>
+                      <SelectItem value="USD">🇺🇸 US Dollar (USD)</SelectItem>
+                      <SelectItem value="EUR">🇪🇺 Euro (EUR)</SelectItem>
+                      <SelectItem value="SGD">🇸🇬 Singapore Dollar (SGD)</SelectItem>
+                      <SelectItem value="MYR">🇲🇾 Malaysian Ringgit (MYR)</SelectItem>
+                      <SelectItem value="JPY">🇯🇵 Japanese Yen (JPY)</SelectItem>
+                      <SelectItem value="GBP">🇬🇧 British Pound (GBP)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[13px] text-muted-foreground">
+                    All amounts on the expense page and in WhatsApp replies will be formatted in this currency.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t border-border/50 pt-6 flex justify-end">
+                <Button onClick={handleSaveSettings} disabled={isSaving}>
+                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Save Changes
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
 
