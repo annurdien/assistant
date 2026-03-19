@@ -1,4 +1,5 @@
 import { MessageSquare, TerminalSquare, List, Settings, LogOut, Clock, KeyRound, Activity, Database, ScrollText, ChevronRight } from 'lucide-react';
+import { ModeToggle } from './mode-toggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, Link } from 'react-router-dom';
 import {
@@ -115,7 +116,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/40 p-2">
+      <SidebarFooter className="border-t border-border/40 p-2 space-y-1">
+        <div className="px-1 py-1">
+          <ModeToggle />
+        </div>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
