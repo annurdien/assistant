@@ -31,7 +31,10 @@ export default function CommandCard({ command, onDelete, prefix = '/' }: Props) 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <TerminalSquare className="w-5 h-5 text-primary" />
-            <CardTitle className="text-xl">{prefix}{command.name}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-xl">{prefix}{command.name}</CardTitle>
+              {command.isBuiltIn && <Badge variant="default" className="bg-primary/20 text-primary border-primary/30 ml-2">Built-in</Badge>}
+            </div>
           </div>
           {!command.enabled && <Badge variant="secondary">Disabled</Badge>}
         </div>
@@ -56,26 +59,28 @@ export default function CommandCard({ command, onDelete, prefix = '/' }: Props) 
           <Pencil className="w-3.5 h-3.5 mr-1.5" />
           Edit
         </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm" className="px-2">
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete /{command.name}?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. The <strong>{command.name}</strong> command will be permanently deleted.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              {/* @ts-ignore */}
-              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={onDelete}>Delete Command</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {!command.isBuiltIn && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="px-2">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {prefix}{command.name}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. The <strong>{command.name}</strong> command will be permanently deleted.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                {/* @ts-ignore */}
+                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={onDelete}>Delete Command</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </CardFooter>
     </Card>
   );

@@ -25,8 +25,8 @@ async function seed() {
 
   await prisma.command.upsert({
     where: { name: 'help' },
-    update: { script: scriptContent, description: 'Displays all available bot commands and functionality' },
-    create: { name: 'help', script: scriptContent, description: 'Displays all available bot commands and functionality' }
+    update: { script: scriptContent, description: 'Displays all available bot commands and functionality', isBuiltIn: true },
+    create: { name: 'help', script: scriptContent, description: 'Displays all available bot commands and functionality', isBuiltIn: true }
   });
   console.log('Help command seeded securely!');
 }

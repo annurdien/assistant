@@ -29,8 +29,8 @@ async function seed() {
 
   await prisma.command.upsert({
     where: { name: 'remind' },
-    update: { script: scriptContent, description: 'Schedules a one-off reminder via AI natural language' },
-    create: { name: 'remind', script: scriptContent, description: 'Schedules a one-off reminder via AI natural language' }
+    update: { script: scriptContent, description: 'Schedules a one-off reminder via AI natural language', isBuiltIn: true },
+    create: { name: 'remind', script: scriptContent, description: 'Schedules a one-off reminder via AI natural language', isBuiltIn: true }
   });
   console.log('Remind Natural Intelligence command seeded successfully.');
 }

@@ -4,10 +4,13 @@ export interface Command {
   description?: string;
   script: string;
   enabled: boolean;
+  isBuiltIn: boolean;
   createdAt: string;
 }
 
-export type CommandInput = Omit<Command, 'id' | 'createdAt'>;
+export type CommandInput = Omit<Command, 'id' | 'createdAt' | 'isBuiltIn'> & {
+  isBuiltIn?: boolean;
+};
 
 export interface CronJob {
   id: string;

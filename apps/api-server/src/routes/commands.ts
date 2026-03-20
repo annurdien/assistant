@@ -56,11 +56,17 @@ export async function commandRoutes(fastify: FastifyInstance) {
       const { id } = request.params as { id: string };
       const body = request.body as Partial<Command>;
 
+      const existing = await prisma.command.findUnique({ where: { id } });
+      if (!existing) return reply.status(404).send({ error: 'Command not found' });
+
       const dataToUpdate: Record<string, any> = {};
       if (body.name !== undefined) dataToUpdate.name = body.name;
       if (body.description !== undefined) dataToUpdate.description = body.description;
-      if (body.script !== undefined) dataToUpdate.script = body.script;
       if (body.enabled !== undefined) dataToUpdate.enabled = body.enabled;
+
+      if (!existing.isBuiltIn && body.script !== undefined) {
+        dataToUpdate.script = body.script;
+      }
 
       const command = await prisma.command.update({
         where: { id },
@@ -77,6 +83,13 @@ export async function commandRoutes(fastify: FastifyInstance) {
     try {
       const { id } = request.params as { id: string };
       
+      const existing = await prisma.command.findUnique({ where: { id } });
+      if (!existing) return reply.status(404).send({ error: 'Command not found' });
+
+      if (existing.isBuiltIn) {
+        return reply.status(403).send({ error: 'Cannot delete a built-in core command.' });
+      }
+
       await prisma.command.delete({
         where: { id },
       });

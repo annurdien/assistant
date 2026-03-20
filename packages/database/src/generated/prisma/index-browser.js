@@ -126,6 +126,7 @@ exports.Prisma.CommandScalarFieldEnum = {
   description: 'description',
   script: 'script',
   enabled: 'enabled',
+  isBuiltIn: 'isBuiltIn',
   createdAt: 'createdAt'
 };
 

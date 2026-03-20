@@ -2004,6 +2004,7 @@ export namespace Prisma {
     description: string | null
     script: string | null
     enabled: boolean | null
+    isBuiltIn: boolean | null
     createdAt: Date | null
   }
 
@@ -2013,6 +2014,7 @@ export namespace Prisma {
     description: string | null
     script: string | null
     enabled: boolean | null
+    isBuiltIn: boolean | null
     createdAt: Date | null
   }
 
@@ -2022,6 +2024,7 @@ export namespace Prisma {
     description: number
     script: number
     enabled: number
+    isBuiltIn: number
     createdAt: number
     _all: number
   }
@@ -2033,6 +2036,7 @@ export namespace Prisma {
     description?: true
     script?: true
     enabled?: true
+    isBuiltIn?: true
     createdAt?: true
   }
 
@@ -2042,6 +2046,7 @@ export namespace Prisma {
     description?: true
     script?: true
     enabled?: true
+    isBuiltIn?: true
     createdAt?: true
   }
 
@@ -2051,6 +2056,7 @@ export namespace Prisma {
     description?: true
     script?: true
     enabled?: true
+    isBuiltIn?: true
     createdAt?: true
     _all?: true
   }
@@ -2133,6 +2139,7 @@ export namespace Prisma {
     description: string | null
     script: string
     enabled: boolean
+    isBuiltIn: boolean
     createdAt: Date
     _count: CommandCountAggregateOutputType | null
     _min: CommandMinAggregateOutputType | null
@@ -2159,6 +2166,7 @@ export namespace Prisma {
     description?: boolean
     script?: boolean
     enabled?: boolean
+    isBuiltIn?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["command"]>
 
@@ -2168,6 +2176,7 @@ export namespace Prisma {
     description?: boolean
     script?: boolean
     enabled?: boolean
+    isBuiltIn?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["command"]>
 
@@ -2177,6 +2186,7 @@ export namespace Prisma {
     description?: boolean
     script?: boolean
     enabled?: boolean
+    isBuiltIn?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["command"]>
 
@@ -2186,10 +2196,11 @@ export namespace Prisma {
     description?: boolean
     script?: boolean
     enabled?: boolean
+    isBuiltIn?: boolean
     createdAt?: boolean
   }
 
-  export type CommandOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "script" | "enabled" | "createdAt", ExtArgs["result"]["command"]>
+  export type CommandOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "script" | "enabled" | "isBuiltIn" | "createdAt", ExtArgs["result"]["command"]>
 
   export type $CommandPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Command"
@@ -2200,6 +2211,7 @@ export namespace Prisma {
       description: string | null
       script: string
       enabled: boolean
+      isBuiltIn: boolean
       createdAt: Date
     }, ExtArgs["result"]["command"]>
     composites: {}
@@ -2629,6 +2641,7 @@ export namespace Prisma {
     readonly description: FieldRef<"Command", 'String'>
     readonly script: FieldRef<"Command", 'String'>
     readonly enabled: FieldRef<"Command", 'Boolean'>
+    readonly isBuiltIn: FieldRef<"Command", 'Boolean'>
     readonly createdAt: FieldRef<"Command", 'DateTime'>
   }
     
@@ -15240,6 +15253,7 @@ export namespace Prisma {
     description: 'description',
     script: 'script',
     enabled: 'enabled',
+    isBuiltIn: 'isBuiltIn',
     createdAt: 'createdAt'
   };
 
@@ -15513,6 +15527,7 @@ export namespace Prisma {
     description?: StringNullableFilter<"Command"> | string | null
     script?: StringFilter<"Command"> | string
     enabled?: BoolFilter<"Command"> | boolean
+    isBuiltIn?: BoolFilter<"Command"> | boolean
     createdAt?: DateTimeFilter<"Command"> | Date | string
   }
 
@@ -15522,6 +15537,7 @@ export namespace Prisma {
     description?: SortOrderInput | SortOrder
     script?: SortOrder
     enabled?: SortOrder
+    isBuiltIn?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -15534,6 +15550,7 @@ export namespace Prisma {
     description?: StringNullableFilter<"Command"> | string | null
     script?: StringFilter<"Command"> | string
     enabled?: BoolFilter<"Command"> | boolean
+    isBuiltIn?: BoolFilter<"Command"> | boolean
     createdAt?: DateTimeFilter<"Command"> | Date | string
   }, "id" | "name">
 
@@ -15543,6 +15560,7 @@ export namespace Prisma {
     description?: SortOrderInput | SortOrder
     script?: SortOrder
     enabled?: SortOrder
+    isBuiltIn?: SortOrder
     createdAt?: SortOrder
     _count?: CommandCountOrderByAggregateInput
     _max?: CommandMaxOrderByAggregateInput
@@ -15558,6 +15576,7 @@ export namespace Prisma {
     description?: StringNullableWithAggregatesFilter<"Command"> | string | null
     script?: StringWithAggregatesFilter<"Command"> | string
     enabled?: BoolWithAggregatesFilter<"Command"> | boolean
+    isBuiltIn?: BoolWithAggregatesFilter<"Command"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Command"> | Date | string
   }
 
@@ -16206,6 +16225,7 @@ export namespace Prisma {
     description?: string | null
     script: string
     enabled?: boolean
+    isBuiltIn?: boolean
     createdAt?: Date | string
   }
 
@@ -16215,6 +16235,7 @@ export namespace Prisma {
     description?: string | null
     script: string
     enabled?: boolean
+    isBuiltIn?: boolean
     createdAt?: Date | string
   }
 
@@ -16224,6 +16245,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     script?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
+    isBuiltIn?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16233,6 +16255,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     script?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
+    isBuiltIn?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16242,6 +16265,7 @@ export namespace Prisma {
     description?: string | null
     script: string
     enabled?: boolean
+    isBuiltIn?: boolean
     createdAt?: Date | string
   }
 
@@ -16251,6 +16275,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     script?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
+    isBuiltIn?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16260,6 +16285,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     script?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
+    isBuiltIn?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17002,6 +17028,7 @@ export namespace Prisma {
     description?: SortOrder
     script?: SortOrder
     enabled?: SortOrder
+    isBuiltIn?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -17011,6 +17038,7 @@ export namespace Prisma {
     description?: SortOrder
     script?: SortOrder
     enabled?: SortOrder
+    isBuiltIn?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -17020,6 +17048,7 @@ export namespace Prisma {
     description?: SortOrder
     script?: SortOrder
     enabled?: SortOrder
+    isBuiltIn?: SortOrder
     createdAt?: SortOrder
   }
 

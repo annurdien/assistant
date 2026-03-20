@@ -31,6 +31,7 @@ async function main() {
       name: 'ai',
       description: 'Interact with OpenAI inference.',
       enabled: true,
+      isBuiltIn: true,
       script: `export default async function(ctx) {
   if (!ctx.input) return "Please provide a prompt. Example: /ai What is the capital of France?";
   
@@ -50,6 +51,7 @@ async function main() {
       name: 'expense',
       description: 'Manage simple expenses in the database.',
       enabled: true,
+      isBuiltIn: true,
       script: `export default async function(ctx) {
   const parts = ctx.input.trim().split(' ');
   const action = parts[0]?.toLowerCase();

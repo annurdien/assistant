@@ -92,11 +92,21 @@ export default function CommandForm({ initialData = {}, onSubmit, isLoading, pre
               </div>
               <span className="text-xs font-mono text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-md shadow-sm hidden sm:block">export default async function (ctx)</span>
             </div>
-            <div className="rounded-md border border-border overflow-hidden shadow-sm ring-1 ring-border relative">
+            
+            {initialData.isBuiltIn && (
+              <Alert className="mb-4 bg-primary/10 border-primary/20">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-primary font-medium">
+                  This is a built-in core command. Its core logic cannot be modified, but you may change its name, description, or toggle its status.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className={`rounded-md border border-border overflow-hidden shadow-sm ring-1 ring-border relative ${initialData.isBuiltIn ? 'opacity-70 pointer-events-none' : ''}`}>
               <ScriptEditor 
                 value={script}
                 onChange={setScript}
-                disabled={isLoading}
+                disabled={isLoading || initialData.isBuiltIn}
               />
             </div>
           </div>
