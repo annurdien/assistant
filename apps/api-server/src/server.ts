@@ -25,12 +25,15 @@ export function buildServer() {
   });
 
   server.register(cors, {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
 
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) throw new Error('JWT_SECRET environment variable is required but not set. Refusing to start.');
+
   server.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || 'supersecret_fallback_key_change_me'
+    secret: jwtSecret
   });
 
   server.register(multipart, {

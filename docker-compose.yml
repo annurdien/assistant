@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15   # Includes the pgvector extension required by Prisma schema
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?err} # Fails fast if not set
+      POSTGRES_DB: ${POSTGRES_DB:-assistant}
+    # ⚠️  Do NOT expose port 5432 to host — only the app container needs access
+    # Uncomment below for local debugging only:
+    # ports:
+    #   - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-assistant}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000" # API Server
+      - "3001:3001" # WhatsApp Service HTTP
+      - "5173:5173" # Dashboard
+    environment:
+      - DATABASE_URL=${DATABASE_URL:?err}
+      - JWT_SECRET=${JWT_SECRET:?err}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - API_EXECUTE_URL=${API_EXECUTE_URL:-http://localhost:3000/execute}
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?err}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:?err}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
+      - MAX_DAILY_COMMANDS=${MAX_DAILY_COMMANDS:-50}
+    env_file:
+      - .env
+    volumes:
+      # Persists the WhatsApp Baileys auth session — no need to rescan QR on restart
+      - wa_auth_data:/app/apps/whatsapp-service/wa-auth-session
+    depends_on:
+      postgres:
+        condition: service_healthy
+    stdin_open: true # Keeps stdin open so you can see the WhatsApp QR code in logs
+    tty: true
+    # Step 1: Push schema migrations | Step 2: Seed core data | Step 3: Start all services
+    command: >
+      sh -c "pnpm --filter @assistant/database run db:push &&
+             pnpm --filter @assistant/database run db:seed &&
+             npx tsx apps/api-server/src/seed-all.ts &&
+             pnpm start"
+
+volumes:
+  postgres_data:
+  wa_auth_data:

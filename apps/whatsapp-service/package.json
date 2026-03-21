@@ -21,9 +21,11 @@
     "@whiskeysockets/baileys": "7.0.0-rc.9",
     "fastify": "^5.8.2",
     "pino": "^10.3.1",
+    "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.6",
     "@types/qrcode-terminal": "^0.12.2",
     "typescript": "^5.9.3"
   }

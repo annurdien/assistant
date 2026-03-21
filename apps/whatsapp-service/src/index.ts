@@ -42,6 +42,7 @@ fetchWhatsAppSettings();
 setInterval(fetchWhatsAppSettings, 30000); // 30s sync
 
 let globalSock: ReturnType<typeof makeWASocket> | null = null;
+let latestQR: string | null = null; // Stores the latest raw QR string for the /qr HTTP endpoint
 
 async function sendToApi(text: string, jid: string, media?: any): Promise<string> {
   try {
@@ -239,7 +240,7 @@ async function initWhatsApp() {
   const sock = makeWASocket({
     version,
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: false,
+    printQRInTerminal: true,   // Always print QR to stdout — works for tty and container logs
     auth: state,
     syncFullHistory: false,
   });
@@ -250,7 +251,9 @@ async function initWhatsApp() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      logger.info('Scan the QR code below to authenticate WhatsApp:');
+      latestQR = qr;
+      logger.info('>>> Scan the QR code below to authenticate WhatsApp <<<');
+      logger.info('>>> Or visit http://localhost:3001/qr for the ASCII QR  <<<');
       qrcode.generate(qr, { small: true });
     }
 
@@ -266,6 +269,7 @@ async function initWhatsApp() {
         logger.info('You are logged out. Delete the ./wa-auth-session directory and restart to scan again.');
       }
     } else if (connection === 'open') {
+      latestQR = null; // Clear QR once authenticated
       logger.info('🚀 WhatsApp connection established and authenticated successfully!');
     }
   });
@@ -300,6 +304,26 @@ fastify.post('/reply', async (request: FastifyRequest, reply: FastifyReply) => {
   } catch (error: any) {
     return reply.status(500).send({ error: error.message });
   }
+});
+
+// QR Code endpoint — accessible via browser or curl even inside a container
+// Usage: curl http://localhost:3001/qr
+fastify.get('/qr', async (_request: FastifyRequest, reply: FastifyReply) => {
+  if (!latestQR) {
+    return reply.send('No QR code available. Either already authenticated or service is starting up.');
+  }
+  // Generate ASCII art QR and serve as plain text
+  return new Promise<void>((resolve) => {
+    const { toString } = require('qrcode');
+    toString(latestQR, { type: 'terminal', small: true }, (err: any, qrString: string) => {
+      if (err) {
+        reply.status(500).send('Error generating QR code');
+      } else {
+        reply.header('Content-Type', 'text/plain; charset=utf-8').send(qrString);
+      }
+      resolve();
+    });
+  });
 });
 
 fastify.listen({ port: 3001, host: '0.0.0.0' }).then(() => {

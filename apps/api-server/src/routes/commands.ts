@@ -2,7 +2,16 @@ import type { FastifyInstance } from 'fastify';
 import { prisma, type Command } from '@assistant/database';
 
 export async function commandRoutes(fastify: FastifyInstance) {
-  
+
+  // Protect all command routes behind JWT authentication
+  fastify.addHook('onRequest', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      reply.status(401).send({ error: 'Unauthorized' });
+    }
+  });
+
   fastify.get('/', async (_request, reply) => {
     const commands = await prisma.command.findMany({
       orderBy: {

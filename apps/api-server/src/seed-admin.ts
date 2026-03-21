@@ -9,7 +9,10 @@ async function main() {
     return;
   }
 
-  const defaultPassword = process.env.ADMIN_PASSWORD || 'admin';
+  const defaultPassword = process.env.ADMIN_PASSWORD;
+  if (!defaultPassword) {
+    throw new Error('ADMIN_PASSWORD environment variable is required for initial admin setup. Set it in your .env file.');
+  }
   const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
   await prisma.admin.create({
