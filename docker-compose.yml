@@ -49,6 +49,11 @@ services:
         condition: service_healthy
     stdin_open: true # Keeps stdin open so you can see the WhatsApp QR code in logs
     tty: true
+    # Drop all Linux capabilities and prevent privilege escalation
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     # Step 1: Push schema migrations | Step 2: Seed core data | Step 3: Start all services
     command: >
       sh -c "pnpm --filter @assistant/database run db:push &&

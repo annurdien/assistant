@@ -13,7 +13,7 @@ export default async function logsRoutes(fastify: FastifyInstance) {
 
   fastify.get('/', async (request) => {
     const query = request.query as any;
-    const limit = query.limit ? parseInt(query.limit) : 50;
+    const limit = Math.min(query.limit ? parseInt(query.limit) : 50, 500);
     
     const logs = await prisma.log.findMany({
       orderBy: { createdAt: 'desc' },

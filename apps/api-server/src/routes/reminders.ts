@@ -3,6 +3,15 @@ import { prisma } from '@assistant/database';
 import { scheduleNewReminder } from '../cron/reminder.service.js';
 
 export default async function reminderRoutes(server: FastifyInstance) {
+  // Protect all reminder routes — without this anyone can send WA messages to any number
+  server.addHook('onRequest', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      reply.status(401).send({ error: 'Unauthorized' });
+    }
+  });
+
   server.post('/', async (request, reply) => {
     const { targetJid, text, minutes, executeAt: executeAtStr } = request.body as any;
     

@@ -52,7 +52,12 @@ export default async function cronRoutes(server: FastifyInstance) {
 
   server.put('/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
-    const data = request.body as any;
+    // Whitelist only safe fields to prevent mass assignment
+    const { schedule, targetJid, enabled } = request.body as any;
+    const data: any = {};
+    if (schedule !== undefined) data.schedule = schedule;
+    if (targetJid !== undefined) data.targetJid = targetJid;
+    if (enabled !== undefined) data.enabled = enabled;
 
     const job = await prisma.cronJob.update({
       where: { id },
