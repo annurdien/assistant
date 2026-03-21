@@ -50,6 +50,7 @@ async function sendToApi(text: string, jid: string, media?: any): Promise<string
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Internal-Token': process.env.INTERNAL_API_TOKEN || '',
       },
       body: JSON.stringify({ text, jid, media }),
     });

@@ -39,6 +39,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:?err}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
       - MAX_DAILY_COMMANDS=${MAX_DAILY_COMMANDS:-50}
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:?err}
     env_file:
       - .env
     volumes:

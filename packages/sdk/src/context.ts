@@ -1,15 +1,20 @@
 import { AIService, ExpenseService } from '@assistant/services';
-import { prisma as dbInstance, PrismaClient } from '@assistant/database';
+import { prisma as dbInstance } from '@assistant/database';
 
 /**
  * The Context object injected into user scripts.
- * It provides strict, controlled access to modular services.
+ * Provides controlled, minimal access to services.
+ *
+ * Security notes:
+ *  - `ctx.db` has been REMOVED to prevent scripts from accessing the full
+ *    Prisma client (admin, secret, setting tables etc.)
+ *  - `ctx.env.get()` has been REMOVED to prevent secret exfiltration.
+ *    Use the ExpenseService or AIService for higher-level operations.
  */
 export type Context = {
   input: string;
   ai: AIService;
   expense: ExpenseService;
-  db: PrismaClient;
   reply: (msg: string) => Promise<void>;
   session: {
     get: (key: string) => Promise<any>;
@@ -17,9 +22,6 @@ export type Context = {
   };
   media?: { mimetype: string; data: string }[] | undefined;
   remind: (time: number | string | Date, message: string) => Promise<void>;
-  env: {
-    get: (key: string) => Promise<string | undefined>;
-  };
 };
 
 export interface ExecutionContextData {
@@ -30,17 +32,12 @@ export interface ExecutionContextData {
 
 /**
  * Creates the execution context for sandboxed command scripts.
- * 
- * @param payload The structured data securely passed into the worker VM
- * @returns Data securely packaged into an immutable Context object
  */
 export function createContext(payload: ExecutionContextData, replyCallback?: (msg: string) => Promise<void>): Context {
-  // Normalize input
   const normalizedInput = payload.input.trim();
 
   const db = dbInstance;
 
-  // Instantiate services securely
   const ai = new AIService();
   const expense = new ExpenseService(db);
 
@@ -62,12 +59,9 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     },
     set: async (key: string, value: any) => {
       if (!payload.jid) return;
-      
       const rec = await db.session.findUnique({ where: { jid: payload.jid } });
       let currentData: Record<string, any> = rec ? (rec.data as Record<string, any>) : {};
-      
       currentData[key] = value;
-      
       await db.session.upsert({
         where: { jid: payload.jid },
         update: { data: currentData },
@@ -80,17 +74,21 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     if (!payload.jid) return;
     try {
       const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+      const internalToken = process.env.INTERNAL_API_TOKEN || '';
       const bodyPayload: any = { targetJid: payload.jid, text: message };
-      
+
       if (typeof time === 'number') {
-         bodyPayload.minutes = time;
+        bodyPayload.minutes = time;
       } else {
-         bodyPayload.executeAt = time instanceof Date ? time.toISOString() : time;
+        bodyPayload.executeAt = time instanceof Date ? time.toISOString() : time;
       }
 
       const res = await fetch(`${baseUrl}/reminders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-Token': internalToken
+        },
         body: JSON.stringify(bodyPayload)
       });
       if (!res.ok) console.error(`Sandbox Reminder failed: [${res.status}]`);
@@ -99,26 +97,15 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     }
   };
 
-  const env = {
-    get: async (key: string) => {
-      const secret = await db.secret.findUnique({ where: { key } });
-      return secret?.value;
-    }
-  };
-
-  // Build the structured context payload
   const context: Context = {
     input: normalizedInput,
     ai,
     expense,
-    db,
     reply,
     session,
     media: payload.media,
     remind,
-    env
   };
 
-  // Freeze the payload to prevent destructive mutations by the executed sandbox script
   return Object.freeze(context);
 }

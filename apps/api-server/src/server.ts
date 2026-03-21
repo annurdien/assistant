@@ -53,6 +53,15 @@ export function buildServer() {
   server.register(commandRoutes, { prefix: '/commands' });
 
   server.post('/execute', async (request, reply) => {
+    // MED-5: Internal-only endpoint — verify shared secret token
+    const internalToken = process.env.INTERNAL_API_TOKEN;
+    if (internalToken) {
+      const providedToken = request.headers['x-internal-token'];
+      if (providedToken !== internalToken) {
+        return reply.status(403).send({ error: 'Forbidden: invalid internal token' });
+      }
+    }
+
     try {
       const body = request.body as { text?: string; jid?: string; media?: any };
 
