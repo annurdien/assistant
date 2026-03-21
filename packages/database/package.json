@@ -14,8 +14,8 @@
     }
   },
   "scripts": {
-    "build": "tsc --build && cp -r src/generated dist/generated",
-    "dev": "tsc --build && cp -r src/generated dist/generated",
+    "build": "tsc --build && rm -rf dist/generated && cp -r src/generated dist/generated",
+    "dev": "tsc --build && rm -rf dist/generated && cp -r src/generated dist/generated",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx src/seed.ts",

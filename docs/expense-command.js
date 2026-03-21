@@ -34,22 +34,87 @@ export default async (ctx) => {
   const raw = ctx.input.replace(/^\/\w+\s*/, '').trim();
   const args = raw.split(/\s+/).filter(Boolean);
 
+  // Get the actual command used (e.g. !exp or /expense)
+  const cmdName = ctx.input.split(' ')[0] || '/expense';
+
   // -- HELP --
   if (!args.length || args[0].toLowerCase() === 'help') {
     await ctx.reply(
       `💰 *Expense Tracker*\n\n` +
       `*Add expense:*\n` +
-      `\`/expense <amount>\`\n` +
-      `\`/expense <amount> <note>\`\n` +
-      `\`/expense <amount> <category> <note>\`\n\n` +
+      `\`${cmdName} <amount>\`\n` +
+      `\`${cmdName} <amount> <note>\`\n` +
+      `\`${cmdName} <amount> <category> <note>\`\n\n` +
       `*Categories:* ${CATEGORIES.join(', ')}\n\n` +
-      `*Summary:*\n` +
-      `\`/expense summary\`\n\n` +
+      `*Summary & List:*\n` +
+      `\`${cmdName} summary\`\n` +
+      `\`${cmdName} list\` (or \`${cmdName} list 2\`)\n\n` +
       `*Examples:*\n` +
-      `\`/expense 50000\`\n` +
-      `\`/expense 25000 Food lunch\`\n` +
-      `\`/expense 15000 Transport grab\``
+      `\`${cmdName} 50000\`\n` +
+      `\`${cmdName} 25000 Food lunch\`\n` +
+      `\`${cmdName} 15000 Transport grab\``
     );
+    return;
+  }
+
+  // -- LIST --
+  if (args[0].toLowerCase() === 'list') {
+    const page = parseInt(args[1]) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const expenses = await ctx.db.expense.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    });
+
+    const totalCount = await ctx.db.expense.count();
+
+    if (!expenses.length) {
+      await ctx.reply(`🗓️ *Expense List*\n\nNo expenses found.`);
+      return;
+    }
+
+    let msg = '```\n' +
+`================================
+        EXPENSE RECEIPT         
+================================
+ Page: ${page} of ${Math.ceil(totalCount / limit)}
+--------------------------------
+`;
+
+    let pageTotal = 0;
+    for (let i = 0; i < expenses.length; i++) {
+        const e = expenses[i];
+        pageTotal += e.amount;
+        
+        const dateObj = new Date(e.createdAt);
+        const dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        const timeStr = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        
+        let amountStr = await fmt(e.amount);
+        amountStr = amountStr.padStart(15, ' ');
+        const catStr = e.category.toUpperCase().padEnd(15, ' ');
+
+        msg += `[${skip + i + 1}] ${dateStr} ${timeStr}\n`;
+        msg += `    ${catStr}${amountStr}\n`;
+        if (e.note) {
+           msg += `    Note: ${e.note}\n`;
+        }
+        msg += `\n`;
+    }
+
+    const totalStr = (await fmt(pageTotal)).padStart(15, ' ');
+    msg += `--------------------------------\n`;
+    msg += ` TOTAL (PAGE)   ${totalStr}\n`;
+    msg += `================================\n`;
+    if (skip + expenses.length < totalCount) {
+        msg += `Type ${cmdName} list ${page + 1} for more\n`;
+    }
+    msg += '```';
+
+    await ctx.reply(msg.trim());
     return;
   }
 
@@ -125,7 +190,7 @@ export default async (ctx) => {
       category = CATEGORIES.includes(parsed.category) ? parsed.category : 'Other';
       note = parsed.note || null;
     } catch (err) {
-      await ctx.reply(`❌ Could not understand the expense. Please use the exact format:\n\`/expense <number> [category] [note]\`\nExample: \`/expense 50000 Food lunch\``);
+      await ctx.reply(`❌ Could not understand the expense. Please use the exact format:\n\`${cmdName} <number> [category] [note]\`\nExample: \`${cmdName} 50000 Food lunch\``);
       return;
     }
   } else {
