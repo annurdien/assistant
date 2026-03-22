@@ -37,3 +37,23 @@ coverage/
 # WhatsApp Baileys Auth Session
 wa-auth-session/
 whatsapp-service/wa-auth-session/
+
+# Playwright
+/playwright-report/
+/test-results/
+/playwright/.cache/
+*.webm
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+prisma/generated/
+
+# Docker / Podman volumes
+volumes/
+data/
+
+# Tmp / scratch
+tmp/
+*.tmp
