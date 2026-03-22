@@ -25,9 +25,11 @@ export async function executeInSandbox(code: string, payload: ExecutionContextDa
       error: (...args: any[]) => console.error('[sandbox]', ...args),
       warn: (...args: any[]) => console.warn('[sandbox]', ...args),
     },
+    // HIGH-3: Promise intentionally EXCLUDED to prevent .constructor.constructor() RCE escape.
+    // The executor is run via Promise.race externally. Scripts that need async should use
+    // the provided ctx.reply(), ctx.ai.ask() etc. which are async-wrapped at call time.
     JSON, Math, Date, Array, Object, String, Number, Boolean, RegExp, Error,
     parseInt, parseFloat, isNaN, isFinite, encodeURIComponent, decodeURIComponent,
-    Promise,
   };
 
   // Explicitly null-out all dangerous globals so prototype chain escapes return null

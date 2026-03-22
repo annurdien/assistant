@@ -147,7 +147,10 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to update settings');
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || 'Failed to update settings');
+      }
     }
   },
 

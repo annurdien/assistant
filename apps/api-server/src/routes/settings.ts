@@ -5,12 +5,16 @@ import { prisma } from '@assistant/database';
 const ALLOWED_SETTING_KEYS = new Set([
   'WA_COMMAND_PREFIX',
   'WA_MAINTENANCE_MODE',
+  'WA_REPLY_UNKNOWN',
   'AI_API_KEY',
   'AI_MODEL',
+  'AI_PROVIDER',
   'WA_BOT_NAME',
   'WA_WELCOME_MESSAGE',
+  'WA_ALLOWED_NUMBERS',
   'CURRENCY_LOCALE',
   'CURRENCY_CODE',
+  'EXPENSE_CURRENCY',
 ]);
 
 export default async function settingsRoutes(fastify: FastifyInstance) {

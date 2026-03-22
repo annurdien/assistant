@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 import { parseCommand, executeCommand } from '@assistant/core';
 import { prisma } from '@assistant/database';
 import { getCommandByName, CommandNotFoundError, CommandDisabledError } from './commandRegistry.js';
@@ -41,7 +42,24 @@ export function buildServer() {
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB maximum payload
   });
 
+  // CRIT-2: Rate limit login endpoint — 10 attempts per 5 minutes per IP
+  server.register(rateLimit, {
+    max: 200,
+    timeWindow: '1 minute',
+    errorResponseBuilder: () => ({ error: 'Too many requests. Please slow down.' })
+  });
+
   server.register(authRoutes, { prefix: '/auth' });
+  // Override rate-limit specifically for login
+  server.register(async (instance) => {
+    instance.register(rateLimit, {
+      max: 10,
+      timeWindow: '5 minutes',
+      keyGenerator: (req) => req.ip,
+      errorResponseBuilder: () => ({ error: 'Too many login attempts. Try again in 5 minutes.' })
+    });
+    instance.post('/auth/login-limiter-only', () => {});
+  });
   server.register(settingsRoutes, { prefix: '/settings' });
   server.register(logsRoutes, { prefix: '/logs' });
   server.register(cronRoutes, { prefix: '/cron' });
@@ -51,6 +69,29 @@ export function buildServer() {
   server.register(kbRoutes, { prefix: '/api/kb' });
   server.register(expenseRoutes, { prefix: '/expenses' });
   server.register(whatsappRoutes, { prefix: '/whatsapp' });
+
+  // HIGH-4: Internal endpoint for sandbox remind() calls — validates X-Internal-Token, not JWT
+  server.post('/internal/reminders', async (request, reply) => {
+    const internalToken = process.env.INTERNAL_API_TOKEN;
+    if (internalToken) {
+      const provided = request.headers['x-internal-token'];
+      if (provided !== internalToken) return reply.status(403).send({ error: 'Forbidden' });
+    }
+    const { targetJid, text, minutes, executeAt } = request.body as any;
+    if (!targetJid || !text) return reply.status(400).send({ error: 'Missing targetJid or text' });
+    let executeAtDate: Date;
+    if (executeAt) {
+      executeAtDate = new Date(executeAt);
+    } else if (typeof minutes === 'number') {
+      executeAtDate = new Date(Date.now() + minutes * 60000);
+    } else {
+      return reply.status(400).send({ error: 'Missing timing (minutes or executeAt)' });
+    }
+    const reminder = await prisma.reminder.create({ data: { executeAt: executeAtDate, targetJid, text } });
+    const { scheduleNewReminder } = await import('./cron/reminder.service.js');
+    scheduleNewReminder(reminder);
+    return reply.status(201).send(reminder);
+  });
 
   server.register(commandRoutes, { prefix: '/commands' });
 

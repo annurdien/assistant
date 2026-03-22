@@ -11,11 +11,28 @@ async function main() {
   // ─── 1. Admin user ───────────────────────────────────────────────────────────
   const existingAdmin = await prisma.admin.findFirst();
   if (!existingAdmin) {
-    const hash = await bcrypt.hash('admin', 10);
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      throw new Error('ADMIN_PASSWORD environment variable is required but not set. Cannot seed admin user.');
+    }
+    const hash = await bcrypt.hash(adminPassword, 12);
     await prisma.admin.create({ data: { username: 'admin', passwordHash: hash } });
-    console.log('✅ Admin user created (admin / admin)');
+    console.log('✅ Admin user created with secure password from ADMIN_PASSWORD env var');
   } else {
-    console.log('⏩ Admin user already exists, skipping');
+    // If password changed in env, re-hash and update
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (adminPassword) {
+      const isMatch = await bcrypt.compare(adminPassword, existingAdmin.passwordHash);
+      if (!isMatch) {
+        const hash = await bcrypt.hash(adminPassword, 12);
+        await prisma.admin.update({ where: { id: existingAdmin.id }, data: { passwordHash: hash } });
+        console.log('🔄 Admin password updated from ADMIN_PASSWORD env var');
+      } else {
+        console.log('⏩ Admin user already exists with correct password, skipping');
+      }
+    } else {
+      console.log('⏩ Admin user already exists, skipping');
+    }
   }
 
   // ─── 2. Execution Logs ──────────────────────────────────────────────────────
@@ -74,25 +91,23 @@ async function main() {
   console.log(`✅ Seeded ${secrets.length} secrets`);
 
   // ─── 4. Settings ─────────────────────────────────────────────────────────────
-  console.log('\n⚙️  Seeding settings...');
+  // IMPORTANT: Use createMany with skipDuplicates so we NEVER overwrite user-configured values.
+  // upsert() would reset the AI key, command prefix, etc. on every container restart.
+  console.log('\n⚙️  Seeding settings (defaults only — existing values are preserved)...');
   const settingEntries = [
-    ['AI_PROVIDER', 'gemini'],
-    ['AI_MODEL', 'gemini-2.0-flash'],
-    ['AI_API_KEY', 'AIzaSy_your_real_key_here'],
-    ['WA_COMMAND_PREFIX', '/'],
-    ['WA_ALLOWED_NUMBERS', ''],
-    ['WA_REPLY_UNKNOWN', 'false'],
-    ['WA_MAINTENANCE_MODE', 'false'],
+    { key: 'AI_PROVIDER', value: 'gemini' },
+    { key: 'AI_MODEL', value: 'gemini-2.0-flash' },
+    { key: 'AI_API_KEY', value: '' },          // blank default — user must set via Settings page
+    { key: 'WA_COMMAND_PREFIX', value: '/' },
+    { key: 'WA_ALLOWED_NUMBERS', value: '' },
+    { key: 'WA_REPLY_UNKNOWN', value: 'false' },
+    { key: 'WA_MAINTENANCE_MODE', value: 'false' },
   ];
-  for (const [key, value] of settingEntries) {
-    if (!key || value === undefined) continue;
-    await prisma.setting.upsert({
-      where: { key: key as string },
-      update: { value: value as string },
-      create: { key: key as string, value: value as string },
-    });
-  }
-  console.log(`✅ Seeded ${settingEntries.length} settings`);
+  const { count } = await prisma.setting.createMany({
+    data: settingEntries,
+    skipDuplicates: true,   // keeps any value the user already changed in the UI
+  });
+  console.log(`✅ Seeded ${count} new settings (${settingEntries.length - count} already existed, kept as-is)`);
 
   // ─── 5. CronJobs ────────────────────────────────────────────────────────────
   console.log('\n⏰ Seeding cron jobs...');

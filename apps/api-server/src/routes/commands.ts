@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { prisma, type Command } from '@assistant/database';
+import { Prisma } from '@assistant/database';
 
 export async function commandRoutes(fastify: FastifyInstance) {
 
@@ -56,7 +57,10 @@ export async function commandRoutes(fastify: FastifyInstance) {
       
       return reply.status(201).send(command);
     } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        return reply.status(409).send({ error: 'A command with that name already exists' });
+      }
+      return reply.status(500).send({ error: 'Internal server error' });
     }
   });
 
@@ -84,7 +88,10 @@ export async function commandRoutes(fastify: FastifyInstance) {
 
       return reply.send(command);
     } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        return reply.status(404).send({ error: 'Command not found' });
+      }
+      return reply.status(500).send({ error: 'Internal server error' });
     }
   });
 
@@ -105,7 +112,10 @@ export async function commandRoutes(fastify: FastifyInstance) {
 
       return reply.send({ success: true });
     } catch (error: any) {
-      return reply.status(400).send({ error: error.message });
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        return reply.status(404).send({ error: 'Command not found' });
+      }
+      return reply.status(500).send({ error: 'Internal server error' });
     }
   });
 }

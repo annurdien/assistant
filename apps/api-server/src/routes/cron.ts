@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from '@assistant/database';
 import { initCronScheduler } from '../cron/cron.service.js';
+import cron from 'node-cron';
 
 export default async function cronRoutes(server: FastifyInstance) {
   // Enforce JWT Auth boundary
@@ -40,6 +41,11 @@ export default async function cronRoutes(server: FastifyInstance) {
        return reply.status(400).send({ error: "Missing required fields: commandId, schedule, or targetJid" });
     }
 
+    // MED-2: Validate cron expression format
+    if (!cron.validate(schedule)) {
+      return reply.status(400).send({ error: 'Invalid cron schedule expression. Example: "0 8 * * *"' });
+    }
+
     const job = await prisma.cronJob.create({
       data: { commandId, schedule, targetJid, enabled: enabled ?? true }
     });
@@ -55,7 +61,13 @@ export default async function cronRoutes(server: FastifyInstance) {
     // Whitelist only safe fields to prevent mass assignment
     const { schedule, targetJid, enabled } = request.body as any;
     const data: any = {};
-    if (schedule !== undefined) data.schedule = schedule;
+    if (schedule !== undefined) {
+      // MED-2: Validate cron expression before storing
+      if (!cron.validate(schedule)) {
+        return reply.status(400).send({ error: 'Invalid cron schedule expression. Example: "0 8 * * *"' });
+      }
+      data.schedule = schedule;
+    }
     if (targetJid !== undefined) data.targetJid = targetJid;
     if (enabled !== undefined) data.enabled = enabled;
 

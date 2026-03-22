@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from '@assistant/database';
 import { AIService } from '@assistant/services';
+import path from 'path';
 
 const ai = new AIService();
 
@@ -46,9 +47,13 @@ export default async function kbRoutes(fastify: FastifyInstance) {
 
     const content = buffer.toString('utf-8');
 
+    // MED-1: Sanitize filename to prevent path traversal
+    const rawFilename = String(data.filename || 'upload.txt');
+    const safeFilename = path.basename(rawFilename).replace(/[^a-zA-Z0-9._\-]/g, '_').slice(0, 255);
+
     const document = await (prisma as any).document.create({
       data: {
-        filename: data.filename,
+        filename: safeFilename,
         content: content.slice(0, 10000)
       }
     });

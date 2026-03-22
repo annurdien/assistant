@@ -33,7 +33,10 @@ export default async function whitelistRoutes(server: FastifyInstance) {
       });
       return reply.status(201).send(entry);
     } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+      if (error instanceof Error && error.message.includes('Unique constraint')) {
+        return reply.status(409).send({ error: 'JID already exists in whitelist' });
+      }
+      return reply.status(500).send({ error: 'Internal server error' });
     }
   });
 
@@ -43,7 +46,7 @@ export default async function whitelistRoutes(server: FastifyInstance) {
       await prisma.whitelist.delete({ where: { id } });
       return reply.status(204).send();
     } catch (error: any) {
-      return reply.status(500).send({ error: error.message });
+      return reply.status(404).send({ error: 'Whitelist entry not found' });
     }
   });
 }

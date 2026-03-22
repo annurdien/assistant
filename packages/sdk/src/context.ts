@@ -62,6 +62,14 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     },
     set: async (key: string, value: any) => {
       if (!payload.jid) return;
+      // HIGH-1: Validate key format and cap value size to prevent DB bloat / prototype pollution
+      if (!/^[a-zA-Z0-9_\-]{1,100}$/.test(key)) {
+        throw new Error('Invalid session key: only alphanumeric, underscore, and dash allowed (max 100 chars)');
+      }
+      const serialized = JSON.stringify(value);
+      if (serialized.length > 8192) {
+        throw new Error('Session value too large: maximum 8 KB allowed');
+      }
       const rec = await db.session.findUnique({ where: { jid: payload.jid } });
       let currentData: Record<string, any> = rec ? (rec.data as Record<string, any>) : {};
       currentData[key] = value;
@@ -93,7 +101,8 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
         bodyPayload.executeAt = time instanceof Date ? time.toISOString() : time;
       }
 
-      const res = await fetch(`${baseUrl}/reminders`, {
+      // HIGH-4: Use /internal/reminders which validates X-Internal-Token, not a user JWT
+      const res = await fetch(`${baseUrl}/internal/reminders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
