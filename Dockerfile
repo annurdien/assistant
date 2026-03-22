@@ -2,7 +2,7 @@
 #  STAGE 1: Builder
 #  Installs build tools + compiles the source
 # ═══════════════════════════════════════
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 
 # Build-time OS deps: openssl for Prisma, python3/make/g++ for native addons, git for pnpm deps
 RUN apk add --no-cache openssl python3 make g++ git
@@ -32,7 +32,7 @@ RUN pnpm build
 #  STAGE 2: Production runtime
 #  Lean image — no build tools, no root
 # ═══════════════════════════════════════
-FROM node:22-alpine AS runtime
+FROM node:25-alpine AS runtime
 
 # Only runtime OS dep needed
 RUN apk add --no-cache openssl
