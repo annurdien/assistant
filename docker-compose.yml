@@ -21,9 +21,13 @@ services:
       retries: 5
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # Pull the pre-built image from GitHub Container Registry.
+    # Override with IMAGE_TAG env var to pin a specific version, e.g. IMAGE_TAG=v1.2.3
+    image: ghcr.io/annurdien/assistant:${IMAGE_TAG:-latest}
+    # ── local dev: comment the line above and uncomment the block below ──────
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "3000:3000" # API Server
