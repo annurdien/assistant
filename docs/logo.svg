@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80" fill="none">
+  <defs>
+    <linearGradient id="bolt-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="bubble-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1433"/>
+      <stop offset="100%" stop-color="#0f0a1e"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Chat bubble background -->
+  <rect x="4" y="4" width="60" height="52" rx="14" fill="url(#bubble-grad)" stroke="#3b1d8a" stroke-width="1.5"/>
+  <!-- Bubble tail -->
+  <path d="M18 56 L10 70 L30 60" fill="url(#bubble-grad)" stroke="#3b1d8a" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- Lightning bolt icon centered in bubble -->
+  <path filter="url(#glow)"
+        d="M40 14 L30 36 H38 L28 58 L46 32 H37 L44 14 Z"
+        fill="url(#bolt-grad)"/>
+
+  <!-- Wordmark -->
+  <text x="78" y="38"
+        font-family="Inter, system-ui, sans-serif"
+        font-size="26"
+        font-weight="700"
+        letter-spacing="-0.5"
+        fill="#f5f0ff">Assistant</text>
+
+  <!-- Tagline -->
+  <text x="79" y="57"
+        font-family="Inter, system-ui, sans-serif"
+        font-size="11"
+        font-weight="400"
+        letter-spacing="0.5"
+        fill="#8b5cf6">AI · WhatsApp</text>
+</svg>
