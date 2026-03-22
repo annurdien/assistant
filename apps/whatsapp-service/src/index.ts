@@ -241,7 +241,7 @@ async function initWhatsApp() {
   const sock = makeWASocket({
     version,
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: true,   // Always print QR to stdout — works for tty and container logs
+    printQRInTerminal: false,  // Disabled per user request, only visible in Dashboard
     auth: state,
     syncFullHistory: false,
   });
@@ -253,9 +253,7 @@ async function initWhatsApp() {
 
     if (qr) {
       latestQR = qr;
-      logger.info('>>> Scan the QR code below to authenticate WhatsApp <<<');
-      logger.info('>>> Or visit http://localhost:3001/qr for the ASCII QR  <<<');
-      qrcode.generate(qr, { small: true });
+      logger.info('>>> A new WhatsApp QR code was generated. View it in the Admin Dashboard! <<<');
     }
 
     if (connection === 'close') {
@@ -307,24 +305,26 @@ fastify.post('/reply', async (request: FastifyRequest, reply: FastifyReply) => {
   }
 });
 
-// QR Code endpoint — accessible via browser or curl even inside a container
-// Usage: curl http://localhost:3001/qr
-fastify.get('/qr', async (_request: FastifyRequest, reply: FastifyReply) => {
-  if (!latestQR) {
-    return reply.send('No QR code available. Either already authenticated or service is starting up.');
+// Status endpoint — returns the base64 QR code or connection state
+fastify.get('/status', async (_request: FastifyRequest, reply: FastifyReply) => {
+  // Check if authenticated
+  if (globalSock?.authState?.creds?.me) {
+    return reply.send({ status: 'connected', user: globalSock.authState.creds.me });
   }
-  // Generate ASCII art QR and serve as plain text
-  return new Promise<void>((resolve) => {
-    const { toString } = require('qrcode');
-    toString(latestQR, { type: 'terminal', small: true }, (err: any, qrString: string) => {
-      if (err) {
-        reply.status(500).send('Error generating QR code');
-      } else {
-        reply.header('Content-Type', 'text/plain; charset=utf-8').send(qrString);
-      }
-      resolve();
-    });
-  });
+
+  // Check if pending scan
+  if (latestQR) {
+    try {
+      const { toDataURL } = require('qrcode');
+      const dataUrl = await toDataURL(latestQR);
+      return reply.send({ status: 'qr_ready', qr: dataUrl });
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Error generating QR code image' });
+    }
+  }
+
+  // Otherwise, still initializing
+  return reply.send({ status: 'loading' });
 });
 
 fastify.listen({ port: 3001, host: '0.0.0.0' }).then(() => {

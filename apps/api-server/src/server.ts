@@ -15,6 +15,7 @@ import secretsRoutes from './routes/secrets.js';
 import whitelistRoutes from './routes/whitelist.js';
 import kbRoutes from './routes/kb.js';
 import expenseRoutes from './routes/expenses.js';
+import whatsappRoutes from './routes/whatsapp.js';
 import multipart from '@fastify/multipart';
 
 const logger = new ConsoleLogger('api-server');
@@ -49,6 +50,7 @@ export function buildServer() {
   server.register(whitelistRoutes, { prefix: '/whitelist' });
   server.register(kbRoutes, { prefix: '/api/kb' });
   server.register(expenseRoutes, { prefix: '/expenses' });
+  server.register(whatsappRoutes, { prefix: '/whatsapp' });
 
   server.register(commandRoutes, { prefix: '/commands' });
 

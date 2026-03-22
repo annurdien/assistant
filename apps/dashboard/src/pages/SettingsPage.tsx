@@ -11,7 +11,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { WhatsAppConnection } from '../components/WhatsAppConnection';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({
@@ -251,6 +253,16 @@ export default function SettingsPage() {
 
           {/* WA WEBHOOK */}
           <TabsContent value="wa" className="m-0 focus-visible:outline-none focus-visible:ring-0 space-y-6 animate-in fade-in-50 duration-500">
+            <Card className="shadow-sm border-border/50">
+              <CardHeader className="bg-muted/10 border-b border-border/50">
+                <CardTitle>Active Connection</CardTitle>
+                <CardDescription>Link your WhatsApp account to the Assistant Engine.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <WhatsAppConnection />
+              </CardContent>
+            </Card>
+
             <Card className="shadow-sm border-border/50">
               <CardHeader className="bg-muted/10 border-b border-border/50">
                 <CardTitle>Messaging Parameters</CardTitle>

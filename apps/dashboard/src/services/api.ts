@@ -265,6 +265,14 @@ export const api = {
     }
   },
 
+  whatsapp: {
+    status: async (): Promise<{ status: 'loading' | 'qr_ready' | 'connected'; qr?: string; user?: any }> => {
+      const response = await fetchWithAuth('/whatsapp/status');
+      if (!response.ok) throw new Error('Failed to fetch WhatsApp status');
+      return response.json();
+    }
+  },
+
   expenses: {
     list: async (params?: { month?: number; year?: number; category?: string }): Promise<ExpenseListResponse> => {
       const qs = new URLSearchParams();
