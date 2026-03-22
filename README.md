@@ -7,7 +7,7 @@
     <img src="https://github.com/annurdien/assistant/actions/workflows/docker-publish.yml/badge.svg" alt="Docker Publish"/>
   </a>
   <a href="https://github.com/annurdien/assistant/actions/workflows/playwright.yml">
-    <img src="https://github.com/annurdien/assistant/actions/workflows/playwright.yml/badge.svg" alt="Playwright Tests"/>
+    <img src="https://github.com/annurdien/assistant/actions/workflows/playwright.yml/badge.svg" alt="CI"/>
   </a>
   <a href="https://ghcr.io/annurdien/assistant">
     <img src="https://img.shields.io/badge/ghcr.io-annurdien%2Fassistant-7c3aed?logo=github" alt="GHCR Image"/>
