@@ -20,6 +20,9 @@ export type Context = {
     get: (key: string) => Promise<any>;
     set: (key: string, value: any) => Promise<void>;
   };
+  setting: {
+    get: (key: string) => Promise<string | undefined>;
+  };
   media?: { mimetype: string; data: string }[] | undefined;
   remind: (time: number | string | Date, message: string) => Promise<void>;
 };
@@ -70,6 +73,13 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     }
   };
 
+  const setting = {
+    get: async (key: string) => {
+      const rec = await db.setting.findUnique({ where: { key } });
+      return rec?.value;
+    }
+  };
+
   const remind = async (time: number | string | Date, message: string) => {
     if (!payload.jid) return;
     try {
@@ -103,6 +113,7 @@ export function createContext(payload: ExecutionContextData, replyCallback?: (ms
     expense,
     reply,
     session,
+    setting,
     media: payload.media,
     remind,
   };

@@ -4,16 +4,16 @@
 # ═══════════════════════════════════════
 FROM node:22-alpine AS builder
 
-# Build-time OS deps: openssl for Prisma, python3/make/g++ for native addons
-RUN apk add --no-cache openssl python3 make g++
+# Build-time OS deps: openssl for Prisma, python3/make/g++ for native addons, git for pnpm deps
+RUN apk add --no-cache openssl python3 make g++ git
 
 WORKDIR /app
 
 # Install pnpm globally
-RUN npm install -g pnpm@9.0.0
+RUN npm install -g pnpm@9.12.0
 
 # Copy workspace manifest files first (better layer caching)
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 
 # Copy all source files
 COPY apps ./apps
@@ -21,8 +21,8 @@ COPY packages ./packages
 COPY scripts ./scripts
 COPY docs ./docs
 
-# Install dependencies (frozen lockfile)
-RUN pnpm install --frozen-lockfile
+# Install dependencies
+RUN pnpm install
 
 # Generate Prisma client & build all packages
 RUN pnpm --filter @assistant/database run db:generate
@@ -43,7 +43,7 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Install pnpm in the runtime image
-RUN npm install -g pnpm@9.0.0
+RUN npm install -g pnpm@9.12.0
 
 # Copy the built workspace from the builder stage
 COPY --from=builder /app ./
@@ -57,4 +57,4 @@ USER appuser
 # API Server = 3000 | WhatsApp Service = 3001 | Dashboard = 5173
 EXPOSE 3000 3001 5173
 
-CMD ["pnpm", "start"]
+CMD ["pnpm", "run", "start:prod"]

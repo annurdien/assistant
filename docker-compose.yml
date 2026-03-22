@@ -60,7 +60,7 @@ services:
       sh -c "pnpm --filter @assistant/database run db:push &&
              pnpm --filter @assistant/database run db:seed &&
              npx tsx apps/api-server/src/seed-all.ts &&
-             pnpm start"
+             pnpm run start:prod"
 
 volumes:
   postgres_data:

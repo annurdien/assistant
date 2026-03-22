@@ -42,6 +42,26 @@ export class ExpenseService {
   }
 
   /**
+   * Lists expense records with pagination.
+   */
+  async listPaginated(page: number, limit: number, userJid?: string) {
+    const where = userJid ? { userJid } : {};
+    const skip = (page - 1) * limit;
+
+    const [items, totalCount] = await Promise.all([
+      this.prisma.expense.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.expense.count({ where }),
+    ]);
+
+    return { items, totalCount };
+  }
+
+  /**
    * Calculates the total sum of all expenses.
    */
   async summarize(userJid?: string): Promise<number> {

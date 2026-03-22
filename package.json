@@ -5,9 +5,13 @@
   "description": "pnpm monorepo workspace",
   "scripts": {
     "start": "concurrently -c \"blue,magenta,cyan\" -n \"api,wa,dash\" \"pnpm run start:api\" \"pnpm run start:wa\" \"pnpm run start:dash\"",
+    "start:prod": "concurrently -c \"blue,magenta,cyan\" -n \"api,wa,dash\" \"pnpm run start:prod:api\" \"pnpm run start:prod:wa\" \"pnpm run start:prod:dash\"",
     "start:api": "pnpm --filter @assistant/api-server run start:dev",
     "start:wa": "pnpm --filter @assistant/whatsapp-service run start:dev",
     "start:dash": "pnpm --filter @assistant/dashboard run dev",
+    "start:prod:api": "pnpm --filter @assistant/api-server run start",
+    "start:prod:wa": "pnpm --filter @assistant/whatsapp-service run start",
+    "start:prod:dash": "pnpm --filter @assistant/dashboard run preview --host 0.0.0.0 --port 5173",
     "build": "pnpm --filter './packages/**' run build && pnpm --filter './apps/**' run build",
     "dev": "pnpm -r --parallel run dev",
     "lint": "pnpm -r run lint",

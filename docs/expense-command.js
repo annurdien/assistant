@@ -16,7 +16,7 @@ const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Health', 
 export default async (ctx) => {
   // Helper: format currency using the EXPENSE_CURRENCY setting
   async function fmt(n) {
-    const currency = (await ctx.db.setting.findUnique({ where: { key: 'EXPENSE_CURRENCY' } }))?.value || 'IDR';
+    const currency = (await ctx.setting.get('EXPENSE_CURRENCY')) || 'IDR';
     const locales = {
       IDR: { locale: 'id-ID', symbol: 'Rp', decimals: 0 },
       USD: { locale: 'en-US', symbol: '$', decimals: 2 },
@@ -59,17 +59,9 @@ export default async (ctx) => {
 
   // -- LIST --
   if (args[0].toLowerCase() === 'list') {
-    const page = parseInt(args[1]) || 1;
     const limit = 10;
-    const skip = (page - 1) * limit;
 
-    const expenses = await ctx.db.expense.findMany({
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit,
-    });
-
-    const totalCount = await ctx.db.expense.count();
+    const { items: expenses, totalCount } = await ctx.expense.listPaginated(page, limit);
 
     if (!expenses.length) {
       await ctx.reply(`🗓️ *Expense List*\n\nNo expenses found.`);
@@ -121,13 +113,7 @@ export default async (ctx) => {
   // -- SUMMARY --
   if (args[0].toLowerCase() === 'summary') {
     const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
-    const expenses = await ctx.db.expense.findMany({
-      where: { createdAt: { gte: startDate, lte: endDate } },
-      orderBy: { createdAt: 'desc' },
-    });
+    const expenses = await ctx.expense.list(now.getMonth() + 1, now.getFullYear());
 
     if (!expenses.length) {
       await ctx.reply(`📊 *Expense Summary*\n\nNo expenses recorded this month.`);
@@ -217,13 +203,7 @@ export default async (ctx) => {
   if (note) reply += `📝 *Note:* ${note}\n`;
 
   // Show month total
-  const now = new Date();
-  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-  const agg = await ctx.db.expense.aggregate({
-    where: { createdAt: { gte: startDate } },
-    _sum: { amount: true },
-  });
-  const monthTotal = agg._sum?.amount || 0;
+  const monthTotal = await ctx.expense.summarize();
   reply += `\n📊 *This month's total:* ${await fmt(monthTotal)}`;
 
   await ctx.reply(reply);
