@@ -5,7 +5,7 @@ import makeWASocket, {
   downloadMediaMessage,
   type WAMessage
 } from '@whiskeysockets/baileys';
-import * as qrcode from 'qrcode-terminal';
+
 import pino from 'pino';
 import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import { ConsoleLogger } from '@assistant/services';
@@ -42,7 +42,8 @@ fetchWhatsAppSettings();
 setInterval(fetchWhatsAppSettings, 30000); // 30s sync
 
 let globalSock: ReturnType<typeof makeWASocket> | null = null;
-let latestQR: string | null = null; // Stores the latest raw QR string for the /qr HTTP endpoint
+let latestQR: string | null = null; // Stores the latest raw QR string for the /status HTTP endpoint
+let connectionState: 'initializing' | 'qr_ready' | 'connected' = 'initializing'; // Tracks actual live socket state
 
 async function sendToApi(text: string, jid: string, media?: any): Promise<string> {
   try {
@@ -253,6 +254,7 @@ async function initWhatsApp() {
 
     if (qr) {
       latestQR = qr;
+      connectionState = 'qr_ready';
       logger.info('>>> A new WhatsApp QR code was generated. View it in the Admin Dashboard! <<<');
     }
 
@@ -260,7 +262,8 @@ async function initWhatsApp() {
       const shouldReconnect =
         (lastDisconnect?.error as any)?.output?.statusCode !== DisconnectReason.loggedOut;
       
-      logger.error(`Connection closed due to ${(lastDisconnect?.error as any)?.message || 'Unknown'}, reconnecting ${shouldReconnect}`);
+      connectionState = 'initializing';
+      latestQR = null;
       
       if (shouldReconnect) {
         initWhatsApp();
@@ -269,6 +272,7 @@ async function initWhatsApp() {
       }
     } else if (connection === 'open') {
       latestQR = null; // Clear QR once authenticated
+      connectionState = 'connected';
       logger.info('🚀 WhatsApp connection established and authenticated successfully!');
     }
   });
@@ -305,15 +309,15 @@ fastify.post('/reply', async (request: FastifyRequest, reply: FastifyReply) => {
   }
 });
 
-// Status endpoint — returns the base64 QR code or connection state
+// Status endpoint — returns the base64 QR code or live connection state
 fastify.get('/status', async (_request: FastifyRequest, reply: FastifyReply) => {
-  // Check if authenticated
-  if (globalSock?.authState?.creds?.me) {
-    return reply.send({ status: 'connected', user: globalSock.authState.creds.me });
+  // Connected state is only true when the Baileys 'connection.update' fired 'open'
+  if (connectionState === 'connected') {
+    return reply.send({ status: 'connected', user: globalSock?.authState?.creds?.me });
   }
 
-  // Check if pending scan
-  if (latestQR) {
+  // QR ready state
+  if (connectionState === 'qr_ready' && latestQR) {
     try {
       const { toDataURL } = require('qrcode');
       const dataUrl = await toDataURL(latestQR);
@@ -323,7 +327,7 @@ fastify.get('/status', async (_request: FastifyRequest, reply: FastifyReply) => 
     }
   }
 
-  // Otherwise, still initializing
+  // Default: still initializing / reconnecting
   return reply.send({ status: 'loading' });
 });
 
