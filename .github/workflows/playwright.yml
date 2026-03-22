@@ -39,10 +39,10 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
-      - name: Lint (apps only)
-        # packages/ use old-style .eslintrc which ESLint v10 no longer discovers automatically.
-        # Type-check already covers packages; lint apps which have flat configs.
-        run: pnpm --filter './apps/**' run lint
+      - name: Lint Dashboard
+        # Only the dashboard app currently has an ESLint v10 flat config (eslint.config.js).
+        # Type-check covers the entire monorepo.
+        run: pnpm --filter @assistant/dashboard run lint
 
       - name: Build
         run: pnpm build
