@@ -32,6 +32,10 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @assistant/database run db:generate
 
+      # Build workspace packages so their type declarations exist before type-check
+      - name: Build workspace packages
+        run: pnpm --filter './packages/**' run build
+
       - name: Type check
         run: pnpm type-check
 
