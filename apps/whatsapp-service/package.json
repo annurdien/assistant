@@ -19,7 +19,7 @@
     "@assistant/database": "workspace:*",
     "@assistant/services": "workspace:*",
     "@whiskeysockets/baileys": "7.0.0-rc.9",
-    "fastify": "^5.8.2",
+    "fastify": "^5.8.3",
     "pino": "^10.3.1",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0"
