@@ -24,7 +24,7 @@
   "dependencies": {
     "@assistant/core": "workspace:*",
     "@assistant/database": "workspace:*",
-    "@google/genai": "^1.45.0"
+    "@google/genai": "^1.46.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
